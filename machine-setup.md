@@ -64,7 +64,7 @@ Remote access
 Icon
 If you want to enable remote access to your database, make sure TCP/IP is also enabled.
 At the same time, make sure the SQL Server Browser service is running on the machines as well. Otherwise you will get the error similar to:
-A network related or instance specific error occurred, while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL server is configured to allow remote connections.(provider: SQL Network Inrerfaces, error:26 - Error Locating Server/Insatance Specified) (Microsoft SQL Server)
+A network related or instance specific error occurred, while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL server is configured to allow remote connections.(provider: SQL Network Interfaces, error:26 - Error Locating Server/Instance Specified) (Microsoft SQL Server)
 
 
 Fixing Collation Conflicts
