@@ -495,3 +495,103 @@ Avoid passing columns into functions in a SELECT statement. Never do theis on th
 ##### Logic functions
 * CHOOSE(): Returns a list item based on its location. First parameter is index, next parameters are the list
 * IFF(): Instant if, three parameters boolean expression, return second parameter if true, third parameter if false.
+
+
+#### Query optimization
+
+##### Indexes
+An index is some form of guaranteed order. Think of a phonebook.
+
+Most indexes generally leads to faster querying, more indexes generally leads to slower modifications, because as data is inserted and deleted indexes must be preserved and updated.
+
+Indexes must be maintained (administrator must defragment indexes). If one deletes data, the space occupied in the index will not get reoccupied by later inserts.
+
+
+##### Types of indexes
+* Clustered index: The rows are stored physically on the disk in the same order as the index, therefore there can only be one clustered index (think of a page number in a book)
+* Non-clustered index: There is a second list that has pointers to the physical rows. Copy of data sorted for queries. Index in the back of a book, contains a pointer back to the original content.
+
+##### Statistics
+Statistics are used by SQL Server to figure out how to execute a query. Every time we write a query it generates an execution plan. It's goal is to identify the best way to execute a query but at the same time determine the execution plan as quickly as possible.
+
+Statistics store information about the data in the indexes and tables. They are used to determine how to best execute a query.
+
+##### Query plans
+How can we figure out what SQL server is doing behind the scenes? 
+
+A query plan shows us what is going behind the scenes. They are used to optimize queries and to determine which indexes were used.
+
+There are two options for viewing a query plan:
+* Actual execution plan. Requires the query to be executed
+* Estimated execution plan. Doesn't require the query to be executed but it may not be correct.
+
+##### Things in an execution plan
+1) Data Access Methods
+    * Scan. Examines every row in the table or index
+    * Seek. Able to follow path directly to the desired data.
+    * Key lookup
+
+In general you want to see a Seek in your queries. Seeing a Scan is not always an indication of a problem, but you should think through what it is happening.
+
+2) Join Methods
+    * Merge join. Data is presorted and this is the most efficient join.
+    * Loop join (nested loop). One table is much smaller than the other. Small table is searched for the values that match the larger table. Slower than a merge join 
+    * Hash join. Large tables and unsorted data. Slowest type of join.
+
+
+##### Query hints
+Typically query hints should be avoided. 
+
+Query hints control how SQL server will execute a query. This can include which index to use or how to lock data.
+
+1) Locking Hints
+    * ROWLOCK. Force locks at the row level
+    * PAGELOCK. Force locks at the page level
+    * TABLOCK. Force locks at he table level
+2) Index and parameter hints
+    * FORCESCAN. Scans index or table
+    * FORCESEEK. Seeks at the index or table
+    * OPTIMIZE FOR UNKNOWN. Tells SQL Server to create a query plan where the value for the parameter will change frequently.
+
+##### Dynamic Management Objects
+Use dynamic management objects are used to see what's going on behind the scenes. Find out how SQL server is using resources. It's at a higher level than an individual query. They can identify problem queries.
+
+DMO's come in two varieties:
+1) Views. Used like tables
+2) Functions. They accept parameters, usually an object ID
+
+**Index dynamic management objects**
+* sys.dm_db_index_usage_stats - determine which indexes are (or aren't) being used
+* sys.dm_db_mising_index_details - determine what indexes SQL server thinks should be added
+* sys.dm_db_index_physical_stats - determine how an index is using disk space
+
+
+**Transaction dynamic management objects**
+* sym.dm_tran_database_transactions - information about transactions in the database
+* sys.dm_tran_session_transactions - information about transactions for sessions
+* sys.dm_tran_locks - information about data locked for transactions
+
+##### Dynamic SQL
+Allows for the creation of SQL on the fly
+Use **sp_executesql** and be careful of SQL injection attacks
+
+```
+EXECUTE sp_executesql <SQL>
+  , <Parameter Definitions>
+  , <Parameter Values>
+```
+
+
+#### Error Handling
+Errors can be detected in two ways:
+1) @@ERROR variable. If there is no error from the previous operation the @@ERROR variable will be 0. However, it requires that one always checks after each operation. The code winds up very complicated. 
+2) TRY/CATCH. Do these steps and get back to me if something goes wrong.
+
+```
+BEGIN TRY
+  -- Perform task
+END TRY
+BEGIN CATCH
+  -- Error handling
+END CATCH
+```
