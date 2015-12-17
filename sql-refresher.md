@@ -41,6 +41,12 @@ String comparisons may be case sensitive. It is possible to disable this at diff
 * **Primary key**: Designed to uniquely identify every single row in that table. Each table is required to have a primary key.
 * **Foreign key**: Used to create relationships between tables. Important in designing a database. Useful when we want to avoid data duplication. 
 
+There are 2 main types of tables from the point of view of the designer/developer.
+1) Data tables
+These tables are the big/important tables, they have lots of fields, lots of rows and are expected to constantly grow in size. The usually have foreign keys that point to other tables.
+2) Lookup tables/setup tables/atomic tables
+Small number of fields, a finite (mostly) number of records , no foreign keys
+
 #### Table relationships
 
 Why would want to do that.
@@ -368,3 +374,124 @@ FROM <table containing data>
 
 An unpivot statement allows us to convert column data into row data. It does not perform a full reverse of a pivot statement.
 
+#### Sorting Data
+SQL returns the data in the order that it appears in the index that SQL uses to query the database.
+
+
+
+##### ORDER BY
+ORDER BY controls which columns will be used to sort output
+
+You can either use a column name or a column number as they appear in the SELECT statement. Using a number is considered a very bad practice and should be avoided.
+
+You can use multiple columns, so the sorting will depend first on the initial column.
+
+The ORDER BY executes last in a SELECT statement. 
+
+By default the ORDER BY statement sorts everything in ascending order **ASC** (for numbers that means smallest to largest, and for strings that means in alphabetical order)
+
+To reverse the default sort order we use the **DESC** keyword
+
+The ASC/DESC modifiers are applied to a particular column after the ORDER BY.
+
+
+##### Limiting rows
+Use the TOP keyword. It's used to limit the number of rows that are returns. This can be done either by specifying a number of rows or a percent. TOP is typically used with ORDER BY.
+
+```
+SELECT TOP 5 PERCENT 
+  <column1)
+FROM ...
+```
+
+
+##### Ranking functions
+There are different ways to specify a ranking function
+1) ROW_NUMBER: Returns the row number
+    ```
+    SELECT <column1>
+      , ROW_NUMBER() OVER (ORDER BY <column2> DESC) AS 'Row number'
+    FROM ...
+    WHERE ...
+    ORDER BY <column2> DESC;
+    ```
+2) RANK: Returns ranking based on ORDER BY statement, ties skip to the next number.
+Think of the Olympics, if two people finish second and nobody gets bronze
+
+    ```
+    SELECT <column1>
+      , ROW_NUMBER() OVER (ORDER BY <column2> DESC) AS 'Row number'
+      , RANK() OVER (ORDER BY <column2> DESC) AS 'Rank'
+    FROM ...
+    WHERE ...
+    ORDER BY <column2> DESC;
+    ```
+3) DENSE_RANK: Returns ranking based on ORDER BY statement, ties don't advance the rank number
+4) NTILE(X): Breaks rows into equal sections where X is the number of sections. 
+
+
+##### Paging
+Paging is used to retrieve portions of data
+FETCH and OFFSET
+* FETCH indicates the number of rows to retrieve
+* OFFSET indicates the number of rows to skip
+
+Restrictions, ORDER BY is required, TOP is not allowed
+
+```
+SELECT <columns>
+FROM <tables>
+ORDER BY <columns>
+    OFFSET X ROWS 
+    FETCH NEXT 5 ROWS ONLY;
+```
+
+##### DISTINCT
+It is used to remove duplicate values. It will only remove rows when the ENTIRE row must be duplicate. 
+
+Distinct will cause a sort of the order which impacts performance.
+
+
+#### Built-in Functions
+1) Deterministic functions. If I pass the same value I get back the same result
+2) Nondeterministic functions. Same input may yield different results
+
+##### Performance issues
+SQL may need to process each row individually, this is also known as a "hidden cursor" because it goes row by row over your results.
+
+Avoid passing columns into functions in a SELECT statement. Never do theis on the WHERE clause as it will need to be applied on the entire table!
+
+##### NULL functions
+* ISNULL: Takes 2 parameters and returns the first parameter if it's not null, returns the second parameter if the first parameter is null
+* COALESCE: Takes multiple parameters and returns the first parameter SQL Server finds that is not null. This is more flexible and easier to read than the ISNULL function.
+
+##### Date/Time functions
+* GETDATE(): Returns the current server date
+* GETUTCDATE: Returns the server date normalized to UTC
+* DATEPART(): Returns part of a data. Related to DAY(), MONTH(), and YEAR()
+* DATEDIFF(): Difference between two dates
+* DATEADD(): Add time to a date
+* ISDATE(): Determines if value is a date
+* DATEFROMPARTS(): Builds a day from a provided year, day, month
+* TIMEFROMPARTS(): Builds a time from provided hour, minute, second
+* EOMONTH(): Provides the last day of the month for the provided date
+* PARSE(): Converts string to a date.
+
+##### String functions
+* CHARINDEX(): Searches for one string inside another
+* PATINDEX(): Supports pattern searches inside of a string
+* LEFT() and RIGHT(): Returns characters from the left or right side of a string
+* LTRIM() and RTRIM(): Removes strings whitespace from a string
+* LEN(): Returns the length of a string
+* CONCAT(): Concatenates strings
+* FORMAT(): Converts value to a string using .Net formatting
+
+##### Data Type functions
+* CONVERT(type, value, format)
+* CAST(value AS type)
+* TRY_PARSE(): More flexible when converting string to data types, returns NULL if parse fails
+* TRY_CONVERT(): Both will return NULL but use a different function behind the scenes.
+
+##### Logic functions
+* CHOOSE(): Returns a list item based on its location. First parameter is index, next parameters are the list
+* IFF(): Instant if, three parameters boolean expression, return second parameter if true, third parameter if false.
