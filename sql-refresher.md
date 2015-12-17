@@ -106,8 +106,6 @@ SET @<Name> = <Value>;
 
 
 
-
-
 #### Select Statements
 First select check which database you want to use:
 * Choose the database from the drop down box
@@ -135,4 +133,238 @@ You can use an asterisk ```*``` for all columns, but never do this for a product
 * Ask for what you need and nothing else
 
 Best practice is to not use select ```*```
+
+Best practice is to use semi-colons after each statement. 
+
+##### Selective execution
+Highlight a particular portion of a statement and press F5 to execute only that portion of the whole program.
+
+The execution results can be outputted in a results grid, plain text, or even a file.
+
+##### Column aliases
+This is useful when we use aggregation functions that: 1) change a column's name, temporarily renames the column name.
+```<column> AS <new_name>```
+
+The new name is provided in double quotes.
+
+##### Performing calculations
+Most arithmetic operations are available in statements (+ addition, - subtraction, * multiplication, / integer division, % modulo)
+
+
+##### Focus on ```WHERE```
+It is used to filter out some rows. It's going to exist right after the ```FROM``` line.
+
+This is one of the first things SQL server is going to process. This means that if we start aliasing columns in the select part, those aliases are not going to be available to us in the WHERE clause.
+
+##### Predicates in WHERE clauses
+The recommended syntax is to have the column first
+
+```
+<column> <operator> <value>
+```
+operators (=, <>, <, >, <=, >=)
+
+Looking at an inclusive range
+```
+<column> BETWEEN <value> AND <value>
+```
+
+Look for a value contained inside a list of values
+
+IN, ALL, ANY, or SOME (not) EXISTS
+
+##### Combining predicates
+Use AND, OR
+
+
+##### Querying strings
+```
+<column> LIKE <expression>
+```
+LIKE allows wildcard characters
+* % - zero or more characters
+* _ - one character
+* [] - used for a range
+  * [afr] - will look for the characters a, f, or r
+  * [a-f] - will look for a, b, c, d, e, or f
+* [^] - any character **except** what is in the range
+
+Be careful when you put a percentage sign in front and behind a string. The problem with that is that SQL will take a performance hit as it will need 
+
+Best practice is never to start with a wildcard character.
+Best practice is to provide as many characters as possible (3-4 at a minimum). Again because of performance, SQL might decide to look through all records when trying to find something.
+
+A final thing is when escaping characters in a string, SQL allows you to choose which escape character to use.
+```
+<column> LIKE '\[pc\]' ESCAPE '\'
+```
+
+##### Handling NULL data in predicates
+Predicates have 3 possible return values: TRUE, FALSE and UNKNOWN.
+
+SQL is going to return unknown if it needs to compare any value that contains NULL. 
+
+In a where statement, only anything that returns TRUE is going to be included in the dataset. Any comparison to a NULL value is going to be excluded.
+
+
+##### Filtering NULL data
+```
+<column> IS NULL 
+```
+
+#### Join Statements
+Why do we have to do joins?
+The data is split up in multiple tables. 
+
+The way joins work is by bringing together two tables by matching the contents of 2 columns. 
+
+We can join multiple tables (more than 2). 
+
+Joins are put together on the FROM line.
+
+```
+FROM table1 as t1
+   INNER JOIN table2 as t2 ON t1.C1 = t2.C1
+```
+
+It is possible to do the join on the WHERE line.
+
+The preferred way (ANSI standard) is to do the JOIN on the FROM line instead of the WHERE line.
+
+##### Best practices when doing joins
+
+1) Always alias tables. When aliasing tables, the convention is to use each capital letter you see and possibly a number. Once you alias a table you MUST always use that alias to refer to the table. The fully qualified name no longer works. (Check this?) 
+2) Always use two part naming for columns. This is because it will sometimes be required (table.Column). This is because sometimes the tables will have the same column name. Additionally it also helps with readability as you can quickly identify where the column is coming from.
+3) Place each join on a separate line. Try to keep the ON keyword on the same line as the INNER JOIN keywords.
+4) Place tables in logical order. This doesn't matter in terms of execution, but it does make the code more readable.
+
+##### Types of joins
+* **INNER JOIN**. By far the most frequently used type used. It's only going to return a row from both sides, when the values match. 
+  ```
+  FROM table1 as t1
+    INNER JOIN table2 as t2 ON t1.C1 = t2.C1
+  ```
+  The keyword INNER is not necessary but it is considered a best practice to  include it to better document the code. Another best practice is to list the tables and column names after the ON in the order in which the tables were declared 
+* **OUTER JOIN**. An outer join will return rows from the tables even if they don't match. There are 3 options for outer joins
+  1) **FULL**. Any row in table A that doesn't match on the join will be returned regardless of which table they are in. Useful for data clean-up, for example find customers with no orders, or orphaned orders. 
+  2) **LEFT**. With left we are pointing in the direction of which table we want to get the orders from.
+  3) **RIGHT**. There is no difference in LEFT or RIGHT other than which order they're specified in, in the FROM line.
+
+* **SELF JOIN**. The second least commonly used type of join. It is a sign of poor design. Instead what you want to do is to split the data in a separate table.
+
+* **CROSS JOIN**. Cartesian product. It doesn't have an ON statement, and it returns all the data combinations from both tables. It's a good way to generate test data.
+
+##### Venn diagram explanations of the different types of joins
+[Jeff Attwood](http://blog.codinghorror.com/a-visual-explanation-of-sql-joins/)
+
+[Code project](http://www.codeproject.com/Articles/33052/Visual-Representation-of-SQL-Joins)
+
+
+#### Sub-queries and the UNION statement
+A sub-query is a query inside another query. It is useful for 1) breaking down complex logic, 2) simplifying reading, 3) "Sneak in operations" that normally wouldn't be allowed in our queries. For example you cannot include an aggregate in a where clause (one that performs an operation on all the rows that get returned, e.g. average). However, but placing them in a sub-query they can be included in a sub-query.
+
+Sub-queries can always be replaced by a JOIN. The join can be faster than a sub-query. 
+
+For the most part if one writes good and clear code.
+
+
+##### Placement of sub-queries
+* **SELECT line**. It allows us to get information from another table and act upon it in the select line. The query must return a scalar or a single value that we can act upon (e.g. an average)
+* **FROM line**. This is like creating a dynamic table. You must alias the result.
+* **WHERE line**. Most common place where people place the order. Some extra predicate operators are used when putting a sub-query in a where line.
+  1) **IN**. Confirm column value exists in the sub-query
+  2) **EXISTS**. Returns true if the sub-query returns values. It can frequently be faster than an IN statement. It's used with a correlated query.
+  3) **ALL**. Compares column value to all items returned by the sub-query.
+  4) **ANY** or **SOME**. See whether the column matches any of the items returned by the sub-query
+  
+##### Correlated sub-queries
+In this case we pass a column name from the outer query into the inner sub-query. It is used to simulate a join.
+
+
+##### UNION statement
+Two results that are tacked on top of each other. Rules for UNION to work
+* Each query needs to have the same number of columns
+* The data types must be compatible
+* First query sets column names of result set
+* If using ORDER BY there can only be one at the end
+* By default UNION queries are DISTINCT. That means that SQL server will remove any duplicates. If we want to have duplicates in the result set then we should use UNION ALL.
+
+##### EXCEPT and INTERSECT statements
+They behave like a UNION statement in that they need the same number of columns and the data types to agree
+* **INTERSECT** returns rows from top query that match the bottom query
+* **EXCEPT** returns rows from top query that don't match the bottom query
+
+
+#### Aggregating Data
+The main focus on aggregation is on the SELECT line, but also the GROUP BY and the HAVING line.
+
+##### Using aggregate functions
+They are used to perform calculation on data. Average, max, min, 
+
+* NULL values are ignored when aggregating. For example, a sum will add up all the rows that have a value, with all NULLs being skipped. Average will add all null values and will divide by the number of non-null values.
+* When you use an aggregate, all columns MUST be in an aggregate (GROUP BY line for all the columns not in the aggregate). An aggregate is going to always return you 1 column. 
+
+Several functions come built-in, but you can create a new one with .Net assemblies.
+
+Whenever someone uses the words "by" or "for each" then a "GROUP BY" is required.
+
+##### Some common aggregate functions
+* SUM(column)
+* COUNT(column) - does not count null values for provided column
+* COUNT(*) - counts all the rows
+* MAX(column)
+* MIN(column)
+* AVG(column)
+
+##### HAVING 
+HAVING allows you to filter on an entire group, i.e. that the group meets the required criteria.
+
+##### Data rollups
+WITH ROLLUP provides the totals using the order in an ORDER BY. If you GROUP BY several different columns, ROLLUP will provide you totals for each column and will roll them up to the higher level column as specified on the GROUP BY line.
+
+##### CUBE
+WITH CUBE provides the totals for all combinations of columns on the GROUP BY. 
+
+##### GROUPING SETS
+Grouping sets will allow us to tell SQL how we want our categories to be totalled up. 
+```
+GROUP BY GROUPING SET ( (...), (...) , (...))
+```
+
+##### GROUPING and GROUPING_ID
+
+GROUPING identifies a column/row being used by a total. Returns the number 1 whenever that column/row is a total.
+
+
+#### Common Table Expressions (CTE)
+It is a lot like a temporary table, table variable or an inline view.
+
+Uses:
+* Breakdown complex queries
+* Avoid sub-queries
+* Simplify certain syntax
+
+Syntax:
+```
+WITH <tableName> [(<columnName1>, ...)]
+AS (
+  <select query that returns a table>
+)
+```
+The column names can be omitted and will be pulled in from the select query.
+
+#### PIVOT and UNPIVOT
+A pivot statement allows us to convert row data into column data.
+
+```
+SELECT <NonPivot>
+  , <FirstNonPivotedColumn>
+  , ...
+FROM <table containing data>
+  PIVOT (FUNCTION(<data column>)
+    FOR <list of pivoted columns>
+      AS <alias>
+```
+
+An unpivot statement allows us to convert column data into row data. It does not perform a full reverse of a pivot statement.
 
