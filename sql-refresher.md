@@ -47,6 +47,12 @@ These tables are the big/important tables, they have lots of fields, lots of row
 2) Lookup tables/setup tables/atomic tables
 Small number of fields, a finite (mostly) number of records , no foreign keys
 
+
+##### Temporary tables
+Temporary tables created inside a stored procedure are destroyed upon completion of the stored procedure.
+* **Local temporary table**: A `#table_name` exists only for the duration of a user session or the procedure that created the temporary table. A local temporary table cannot be shared amongst multiple users.
+* **Global temporary table**: A `##table_name` also exists for the duration of a user session or procedure, but can be shared amongst multiple users.
+
 #### Table relationships
 
 Why would want to do that.
@@ -101,6 +107,11 @@ Variables store temporary data. They have 3 components
 DECLARE @<Name> <DataType>;
 SET @<Name> = <Value>;
 ```
+
+##### Table variables
+Table variables are declared in a similar way to creating regular or temporary tables. The only difference is the datatype used for naming the table. Table variables are used most often in table valued functions. 
+
+
 
 #### Comments
 * Single line comment. Two dashes (```--```)
