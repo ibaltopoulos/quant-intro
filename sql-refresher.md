@@ -1,5 +1,9 @@
 ### SQL refresher
 
+
+#### Best practices checklist
+* <http://sqlblog.com/blogs/aaron_bertrand/archive/2008/10/30/my-stored-procedure-best-practices-checklist.aspx>
+
 #### Basics
 The basic unit is a **table** (rectangular data structure that has columns and rows).
 
@@ -166,6 +170,8 @@ The new name is provided in double quotes.
 
 ##### Performing calculations
 Most arithmetic operations are available in statements (+ addition, - subtraction, * multiplication, / integer division, % modulo)
+
+##### `Case` expressions
 
 
 ##### Focus on ```WHERE```
