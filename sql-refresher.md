@@ -171,7 +171,10 @@ The new name is provided in double quotes.
 ##### Performing calculations
 Most arithmetic operations are available in statements (+ addition, - subtraction, * multiplication, / integer division, % modulo)
 
-##### `Case` expressions
+##### `CASE` expressions
+There are two kinds of `CASE` expressions. 
+* Simple `CASE` statement. The simple case statement works like a switch in traditional programming languages. You provide a variable, and depending on the value of the variable a particular case is executed and the relevant expression is returned.
+* Searched `CASE` statement. The searched case statement work more like multiple conditionals in haskell. Each condition is evaluated in turn until one that evaluates to `TRUE` is found. If no branch results in true, then `NULL` is returned.
 
 
 ##### Focus on ```WHERE```
