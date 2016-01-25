@@ -8,6 +8,29 @@ SS Stevens. On the theory of scales measurements is a classic paper on statistic
 * **Interval**. Used to rank order cases but the distance, or interval between each value is equal. For example longitude or latitude are interval variables.
 * **Ratio**. The same as interval but these type of variables have a true Zero point.
 
+
+### Measurement issues
+#### Reliability
+Reliability estimate - if I use an instrument to measure one property at one time and then use the same instrument to measure the same property at another time, then the measurements from time 1 to time 2 should be stable (e.g. think of a scale).
+
+* **Classical test theory** (or true score theory). In a perfect world it would be possible to obtain a "true score" absent of any measurement error. So any raw score X is a combination of the true score, some bias and some chance error.
+$$ X (raw score) = true score + bias + chance error $$
+
+  This is also known as true score theory. 
+
+  As a measure (X) approaches the true score, it is considered to be reliable. The problem is that we don't know what the true score is. So we estimate reliability. 
+* **Reliability measures**.
+  * Test / retest
+  * Parallel test
+  * Inter-item estimates
+
+
+#### Validity
+TBD 
+
+#### Sampling
+TBD
+
 ### Scales of measurement
 In statistics there is a standard scale called the Z scale.
 
@@ -103,3 +126,185 @@ $$ r = \sum{\frac{Z_X \times Z_Y}{N}} $$
 
 #### When to divide by N or N-1.
 In general, when doing descriptive statistics divide by N. When doing inferential statistics like regression divide by N-1
+
+
+### Inferential statistics.
+
+Regression is a statistical analysis used to predict scores on an outcome variable, based on one or multiple predictor variables.
+
+
+
+
+
+#### Basics of regression
+* Simple regression vs. multiple regression. The number of predictor variables. If there is only a single predictor variable we call the regression a simple one. When you have multiple predictors you talk about multiple regression. 
+
+  In the case of simple regression you can plot the predicted line in 2D scatter plot. However when you have more than 2 predictor variables it's more difficult to visualise the results. 
+
+* Components of the regression equation 
+$$ Y = m + bX + e  $$
+
+  Y is a linear function of X, m is the intercept and b is the slope. b is the rise over run. The notation above should be familiar from high school algebra, but the following notation is more common in statistics.
+
+$$ Y = B_0 + B_1 X_1 + e $$
+
+  B is the regression coefficient, \\( B_0 \\) is the intercept known as the regression constant, \\( B_1 \\) is the slope known as the regression coefficient.
+
+  Model $R$. The correlation between the predicted scores and the observed scores.
+  
+  Model $R^2$. The proportion of variance in Y explained by the model.
+
+* Evaluate a regression model
+
+  The goal of inferential statistics is to produce better models so we can generate more accurate predictions. We can do this by:
+  * Adding more predictor variables, or
+  * Develop better predictor variables
+
+#### Estimate the coefficients
+The values of the coefficients are estimated such that the regression model yields optimal predictions. Minimise the residuals. This is done by:
+1) calculating the residual (observed score - predicted score), 
+2) square them to take away the sign (some will be over-predictions and some will be under-predictions, and 
+3) Sum them all up 
+
+$$ \text{SS.Residual} = \sum_i{ (Y_i - \hat{Y_i})^2 } $$
+
+
+#### Assumptions underlying a basic linear regression
+* Normal distribution for Y
+* Linear relationship between X and Y
+* Homoscedasticity
+
+
+### Null hypothesis significance testing
+NHST is a game we play as scientists. It is a general procedure that can be applied to several analyses. For example we can apply it to:
+* **Correlation analysis** Is the correlation significantly different from zero?
+* **Regression analysis** Is the slope of the regression line for X significantly different from zero? 
+
+#### Formulation
+Before we conduct a study or an experiment we construct 2 hypotheses
+1) Null hypothesis \\( N_0 \\): e.g. The regression coefficient is zero \\( B_i = 0 \\) 
+2) Alternative hypothesis \\( N_A \\): e.g. The regression coefficient is greater than zero \\( B_i \\gt 0 \\)
+
+Depending on how you formulate the alternative hypothesis you can predict the direction of the relationship between X and Y (positive or negative).
+* **Directional tests or one tail test**. In a directional test, the alternative hypothesis attempts to predict the direction of the relationship between X and Y. For example, \\( H_0 = 0 \\ \text{vs.}\\ H_A \gt 0 \\)
+* **Non-directional test or two tail test**. If we are more agnostic and we don't predict the direction, we are performing a non-directional test. For example, \\( H_0 = 0 \\ \text{vs.}\\ H_A \ne 0 \\)
+
+#### Perform the test
+Entering our study we have to:
+1) assume that the null hypothesis is true. 
+2) Then do our study, calculate all the statistics and 
+3) then reassess that assumption.
+
+The critics of NHST argue that this step is counterintuitive as we never try to experiment to predict nothing or no relationship between two variables. It is weird and backwards that we do so in NHST.
+
+Once we have completed the steps above, we want to estimate the probability of observing the data that we did observe given the initial assumption that the null hypothesis is true 
+
+$$ p = P(D \mid H_0) $$
+
+If the p value is very low then reject \\( H_0 \\), else retain \\( H_0 \\)
+
+
+#### Outcomes
+Once we've completed the analysis we need to decide whether we accept or reject the null hypothesis given the p-value we calculated.
+
+Depending on the outcome there are 4 cases about whether our decision was correct or not.
+
+<table>
+<tr>
+  <td>
+    
+  </td>
+  <td>
+    Accept Null Hypothesis
+  </td>
+  <td>
+    Reject Null Hypothesis
+  </td>
+</tr>
+<tr>
+  <td>
+    Null H is TRUE
+  </td>
+  <td>
+    Correct decision
+  </td>
+  <td>
+    Type I error (false alarm)
+  </td>
+</tr>
+<tr>
+  <td>
+    Null H is FALSE
+  </td>
+  <td>
+    Type II error (missed)
+  </td>
+  <td>
+    Correct decision
+  </td>
+</tr>
+</table>
+
+
+On criticism of the NHST is that you have to make a binary decision to accept or reject the null hypothesis.
+
+* **Type I error** (false alarm): 
+* **Type II error** (a miss): There is an effect out there but we missed it for whatever reason.
+
+The fact that we make errors is not a big issue since we will conduct the study several times and any individual study could lead to errors.
+
+#### Interpreting the p-value
+It is very important to understand what a p-value means.
+
+It is the probability of obtaining the data we obtained through experimentation given the assumption that the null hypothesis is true, given the assumption that there is no relationship (no effect).
+
+$$ p = P(D \mid H_0) $$
+
+**CAUTION** It is not the flip of the statement above which is a very common mistake people make. 
+
+#### Calculating the p-value
+To get the p-value you first need to calculate the t-test.
+The way to get the p-value for a regression analysis is to first calculate the t-value. 
+
+Most NHST are ratios of what did you observe what do you get just due to chance. 
+  
+$$ Standard Error = \frac{\sqrt{SS.Residual}}{N - 2} $$
+
+$$ t = \frac{B}{Standard Error}$$
+
+The t-test is a ratio where B is the regression coefficient, relative to the standard error.
+
+
+
+#### Problems with NHST
+* **Biased by sample size**
+  This can be seen in regression. The p-value out of the regression, depends on the t-value and the t-value depends on the sample size. N is in the denominator of the standard error equation. If N -> high, SE -> low, t -> high which is associated with a low p-value which will allow you to reject the null hypothesis regardless of what the slope of the regression is.
+    
+* **Arbitrary decision rule**
+  We have to pick a value after which we can reject the null hypothesis. Usually in the social sciences use p < 0.05 which is completely arbitrary. 
+  
+* **Yokel local test**
+  What you do as a common custom. People sometimes just do NHST because that is the only technique/procedure they have learned. This is a problem because it is the only thing people know and they oftentimes create weak hypothesis testing. 
+
+* **Error prone**
+  There is always a possibility of type I or type II errors. The probability of type I errors becomes higher as researchers repeat their tests on the same data.
+  
+  Sampling error, we get small samples out of big population which means that we are more likely to miss effects.
+
+* **Shady logic**
+  Modus tollens. If p then q. Not q, therefore not p.
+
+  If the null hypothesis is correct, then this data cannot occur. The data has occurred so we can reject the null hypothesis.
+  
+  The problem is that the logic becomes probabilistic.
+
+#### Remedies to NHST
+* **Biased sample size -> Supplement all NHST with estimates of effect size**
+  Whenever you report an effect, also report the magnitude of the effect. For regression always report the \\( R^2 \\)
+* **Arbitrary decision rule -> Supplement NHST with estimates of effect size**
+* **Learn other techniques of hypothesis testing**. Confidence intervals, Bayesian inference
+* **Consider multiple alternative hypothesis**. Do model comparison after that
+* **Error prone**. Replicate significant effects to avoid the long term impact of type I errors. Obtain large representative samples to avoid type II errors.
+
+
+
