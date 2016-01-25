@@ -308,3 +308,41 @@ The t-test is a ratio where B is the regression coefficient, relative to the sta
 
 
 
+### Central Limit Theorem
+To understand where the p-values come in null hypothesis significance testing, we need to understand the central limit theorem. This depends on sampling distributions.
+
+#### Sampling distributions
+Histograms are used to display distributions. Random sample and then convert to z-score.
+
+If a distribution is perfectly normal then we know the properties of the distribution. The normal distribution is fully symmetrical, and the majority of the distribution falls about 2 SD from the mean.
+
+We can use that information to make probability judgments.
+
+Sampling distributions is a distribution of sample statistics, obtained from multiple samples. We can then calculate various statistics for each sample and have a distribution of sample statistics (e.g. distribution of means, sd, etc.). Any variation between these statistics must be due to sampling error.
+
+The sampling distribution is a hypothetical construct, we only have one sample from the population. 
+
+Taking a sampling distribution and we combine it with probability we can start making probabilistic inferences.
+
+
+
+#### Principles of Central Limit Theorem
+1) The mean of the sampling distribution is equal to the mean of the population
+2) The SD of the sampling distribution is the square root of the variance of the sampling distribution
+3) The shape of a sampling distribution is approximately normal if either (a) N >= 30, or (b) the shape of the population distribution is normal. The population itself doesn't need to be normal but we just have to take a sufficiently large number of samples.
+
+
+#### Family of t-distributions
+Based on the sample size, you pick a particular t-distribution.
+
+
+
+### Confidence intervals
+Instead of engaging in inferential statistics like NHST, and instead just report on confidence intervals. The main argument for interval estimates is the reality of sampling error. Sampling error implies that any point estimate will vary from one study to the next.
+
+All sample statistics are **point estimates**, they are one point in an entire sampling distribution. 
+
+The logic of confidence intervals is to report a range of values rather than a single value. In other words report an **interval estimate** instead of a **point estimate**.
+
+> A confidence interval is an interval estimate of a population parameter, based on a random sample. The degree of confidence e.g. 95%, represents the probability that the interval will capture the true population parameter.
+
