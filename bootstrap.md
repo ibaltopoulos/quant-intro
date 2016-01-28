@@ -54,7 +54,7 @@ On an `img` tag we can specify various classes to force the text to flow around 
 * `hidden-xs`: When added to an element the element is hidden when the screen size is small.
 * `visible-lg`: It is only visible when in a lg screen. It is the opposite of the one above.
 
-# Theming
+# Theming basic elements
 You can override the basic elements provided by bootstrap in a site.css file
 * `navbar`: Specifies that a particular `div` is to be used as a navigation bar.
 * `navbar-default`
@@ -115,8 +115,55 @@ To style a table using bootstrap add the class `table`.
 * `table-condensed`: Makes the table 'tighter' by removing padding from each row.
 * `table-responsive`: Apply this to a div that contains the table
 
+## Forms
+The first step in formatting a form is to put associated elements together in a `div`. For example `label` and `input` should be put together in a `div` with class `form-group`.
+
+  ```
+  <div class="form-group">
+    <label for="nameInput">Your name</label>
+    <input type="text" 
+           name="nameInput" 
+           class="form-control" 
+           placeholder="Your name" />
+  </div>
+  ```
+Bootstap supports 3 kinds of forms:
+* **Vertical forms.** This uses the vertical control where the labels are on the top and the
+* **Inline forms**. Add `form-inline` to the `form` class.
+* **Horizontal forms.** 
+
+ 
+
 ## Some useful HTML5 tags 
 The following are some useful HTML5 tags.
 * `<section>`: Defines a section in a document, such as chapter, header, footer, etc. 
 * `<header>`: It represents a container for introductory content or a set of navigational links. It typically contains one ore more heading elements. 
 * `<nav>`: It defines a set of navigational links.
+
+
+# Theming components
+## Heading
+This allows to add a nice header and breadcrumb on each page.
+  ```
+  <div class="page-header">
+    <ol class="breadcrumb">
+      <li cl ass="active"><a href=""> </a></li> 
+    </ol>
+    <h1>....
+    <p>...
+  </div>
+  ```
+
+## Button groups
+Think of these as an alternative to radio buttons. They are a single control to select one of several options.
+
+  ```
+  <div class="btn-group">
+    <button class="btn btn-success active"> ...
+    <button class="btn btn-success"> ...
+    <button class="btn btn-success"> ...
+  </div>
+  ```
+
+To stack them vertically use `btn-group-vertical`
+To change their size use `btn-group-sm`
