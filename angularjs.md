@@ -33,34 +33,7 @@ The controller manages the data model for the view and contains the methods requ
 * `html`: Partial html pages
 * `index.html`: Entry point to the application
 
-## Directives
-#### `ng-repeast` directive
-Usually used for dynamically constructing rows of elements in a table.
 
-```
-<tr ng-repeat="p in ps">
-  <td>{{p.Item}}</td>
-  <td>
-    <img ng-src="{{p.imageUrl}}" title="{{p.Description}}" />
-  </td>
-```
-Specifically for the img-src attribute, we want to use `ng-src` here, otherwise the browser will attempt to load the image without having evaluated the expression in the curly braces before that.
-
-#### `ng-init` directive
-Its use is discouraged, however it allows you to quickly see how things work if a collection was actually populated when prototyping and before you actually connect to a real service.
-
-```
-<table ng-init='
-  products= [
-    { "productId" : 1,
-      "imageUrl" : "http://1",
-      "Description" : "The dscr1"},
-    { "productId" : 2,
-      "imageUrl" : "http://2",
-      "Description" : "The dscr2"},
-  ]'>
-  
-```
 ## Modules
 Most applications have one module but can reference other modules.
 A module tracks all of the application's code.
@@ -91,7 +64,7 @@ The purpose of the controller is to provide support to a view. The code in the c
 ### Creating a controller
 A controller is registered with one of the applications modules.
 
-1) Start by defining the IIFE to wrap around the entire contents of the controller.
+1) **Define a surrounding IIFE.** Start by defining the IIFE to wrap around the entire contents of the controller.
     ```
     (function() {
         // Code goes here
@@ -108,8 +81,17 @@ A controller is registered with one of the applications modules.
           // code goes here
        }]);
     ```
+    Instead of inlining the function as the last argument in the definition of the controller, we can also write it out separetely and use the function name there instead.
 
-4) Write the actual code of the controller
+    ```
+    .controller("ControllerNameCtrl", 
+      ["$scope1", "$scope2", FunctionName]);
+       
+    function FunctionName($scope1, $scope2) {
+        // code goes here
+    }
+    ```
+4) **Write the actual code of the controller**
 
 ### Communicating between View and controller
 Communication and information passing between the view and the controller can be performed with the following 2 ways:
@@ -140,6 +122,60 @@ Connecting the controller to the view is done using the `ng-controller` directiv
 ... 
 </div>
 ```
- 
+
+## Directives
+#### `ng-repeast` directive
+Usually used for dynamically constructing rows of elements in a table.
+
+```
+<tr ng-repeat="p in ps">
+  <td>{{p.Item}}</td>
+  <td>
+    <img ng-src="{{p.imageUrl}}" title="{{p.Description}}" />
+  </td>
+```
+Specifically for the img-src attribute, we want to use `ng-src` here, otherwise the browser will attempt to load the image without having evaluated the expression in the curly braces before that.
+
+#### `ng-init` directive
+Its use is discouraged, however it allows you to quickly see how things work if a collection was actually populated when prototyping and before you actually connect to a real service.
+
+```
+<table ng-init='
+  products= [
+    { "productId" : 1,
+      "imageUrl" : "http://1",
+      "Description" : "The dscr1"},
+    { "productId" : 2,
+      "imageUrl" : "http://2",
+      "Description" : "The dscr2"},
+  ]'>
+  
+```
+
+### `ng-click` directive
+The `ng-click` directive can be added to a button and it allows to call a method defined in a controller from the view.
+```
+<div ng-controller="TheController as vm">
+  <button 
+    type="button"
+    ng-click="vm.MethodCall()">Call to Action
+  </button>
+  ...
+```
+
+### `ng-show` and `ng-hide` directives
+The `ng-show` and `ng-hide` directives allow us to display or hide elements, when the variable they are pointing to is `true`. Both directives do not affect the loading of the element. For example, if applied to an image, the image will still be downloaded but it won't be displayed.
+
+**CAUTION**. Both directives above expect an expression on the right hand side, and therefore don't require curly braces.
+
+```
+<img 
+  ng-src="{{...}}"
+  title="{{...}}"
+  ng-show="vm.showImage">
+```
+
+### `ng-if` directive
+Unlike `ng-show` and `ng-hide` that add elements to the DOM but hide them, the `ng-if` directive controls whether a particular element is added to the DOM at all.
 
 ## Filters
