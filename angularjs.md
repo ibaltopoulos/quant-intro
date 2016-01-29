@@ -178,4 +178,46 @@ The `ng-show` and `ng-hide` directives allow us to display or hide elements, whe
 ### `ng-if` directive
 Unlike `ng-show` and `ng-hide` that add elements to the DOM but hide them, the `ng-if` directive controls whether a particular element is added to the DOM at all.
 
+## Built-in Angular Services for calling a WebAPI
+* `$http`: Facilitates communication with remote web servers. It offers methods like `.get`, `.post`, `.put`. Every call made through `$http` is **asynchronous**. The call returns a promise and `.then` is used to register a callback function that is passed the response from the HTTP call.
+    ```
+    $http.get("/api/products")
+      .then(function(response) {
+        vm.products = response.data;
+      });
+    ```
+* `$resource`: While the previous syntax provides access to the raw API, by using the `$resource` one can talk to REST service in a simpler way. It abstracts away the complexity of interacting directly with the HTTP server. The part of the url prefixed with the colon (:) represents the optional parameter.
+
+    ```
+    function productResource($resource) {
+      return $resource("/api/products/:productId"); 
+    }
+    ```
+  This module is not included by default so we need to register it as a dependency in our modules and also include the .js file in index.html.
+
+  ![Angular Services Module](img/angular-services-module.jpg)
+
+  Similar to the controller syntax, the `factory` method takes the name of the factory as it's first argument and a list as its second argument. The list contains the names of the parameters as strings, and then the last element of the list is the service function, either as an inline anonymous function, or a function name.
+    
+* `$httpBackend` This component is used to intercept calls made by `$http` and `$resource` in order to fake their responses if they are not already available. It mocks the calls to the web service and returns static data to the application. There are two implementations of this component:
+    1) **ngMock**: This is used for unit testing applications
+    2) **ngMockE2E**: This is used for end-to-end testing or backend-less development.
+    
+  There are a few steps in order for one to mock the web server:
+    1) Download the ngMockE2E module and include it in the index.html file. (angular.mocks)
+    2) Create a new module that depends on ngMockE2E
+    
+    ```
+    var app = angular.module("serviceMock", ["ngMockE2E"]);
+    app.run(function ($httpBackend) {
+      var productData = {...};
+      var productUrl = "/api/products";
+      $httpBackend.whenGET(productUrl).respond(products);    
+    });
+    ```
+    
+    3) In the newly created module set up static data
+    4) Define the fake responses to the web server calls
+    5) Add the new module as a dependency in the Main Module. To end the mocking just remove the dependency from the main module.    
+
 ## Filters
