@@ -268,9 +268,7 @@ We are going to use UI router.
         ```
         angular.module("theApp", [...])
           .config(["$stateProvider", function($stateProvider) {
-          
             // code from above goes here.
-          
           }]);
         ```
     3) Define a default State for the application
@@ -285,12 +283,12 @@ We are going to use UI router.
 
 ### Activating a route
 There are 3 ways to activate a route
-1) **Set the URL**
-2) **Use code**
-  Using the `$state.go("productList");` method call. The argument is the state name and **not** the URL fragment
-3) **Click a link**
-    Links need to use the `ui-sref` directive to navigate to a state. **Note** that his technique also uses the state name and **not** the URL fragment.
-    ```
-    <a ui-sref="productList">
-    </a>
-    ```
+  1) **Set the URL**
+  2) **Use code**
+      Using the `$state.go("productList");` method call. The argument is the state name and **not** the URL fragment
+  3) **Click a link**
+      Links need to use the `ui-sref` directive to navigate to a state. **Note** that his technique also uses the state name and **not** the URL fragment.
+      ```
+      <a ui-sref="productList">
+      </a>
+      ```
