@@ -220,4 +220,77 @@ Unlike `ng-show` and `ng-hide` that add elements to the DOM but hide them, the `
     4) Define the fake responses to the web server calls
     5) Add the new module as a dependency in the Main Module. To end the mocking just remove the dependency from the main module.    
 
-## Filters
+## Routing
+Routing is a technique for navigating between the views. Each route represents a specific view and activating a route navigates to that view.
+
+A fragment identifier is the part of the URL after a hash and is used to identify a view. This part of the URL is processed by the client rather than the server. The fragment identifier identifies a state rather than a resource.
+
+Angular provides two frameworks for routing:
+1) **ngRoute**: This is an additional module that can be obtained from the angular website and is stored in the file angular-route.js. Navigation is based on URL fragment identifiers. Each route has a URL fragment identifier, a view template and an optional controller.
+2) **UI router**: Third party library available on github. It is based on application states. Each state has a fragment identifier, view template, controller and additional behavior.
+
+We are going to use UI router.
+
+### Steps to defining a SPA
+1) The first step is to define  the application's site map and associate a state for each page in the sitemap. The name of the state needs to be unique across the application.
+2) Create the layout of the main page of the application. In the context of SPA's (Single Page Applications) in this step we create the page. This page defines common elements across all pages, like a header, a menu bar or a footer and defines the area where all other views are going to appear. Each individual view is defined in it's own html template and is inserted in the layout template in response to user actions.
+
+### Setting up the routing
+* **UI router**
+    1) Download the UI router module
+    2) Set the script tag for UI router in the index.html file
+    3) Setup UI router as a dependency to the main application.
+* **Layout view**
+    1) Identify where the views appear
+        ```
+        <body>
+          <div class="container>
+            <div ui-view></div>
+          </div>
+        </body>
+        ```
+    2) Add the `ui-view` directive
+    3) Or use `data-ui-view` if the browser doesn't support the former.
+* **Routes**
+    1) Identify the route states
+        The UI router provides a `$stateprovider` that allwos us to define the various states of the application. Each state is defined using the `state` method. The state method takes 2 arguments, the name of the state and an object. The objects properties are used to define the parameters for the state. The `url` property defines the URL fragment identifier (whatever comes after the #). It is useful for enabling deep linking into the application states and for ensuring that the browser's back and forward buttons work as expected. The `templateurl` property defines the path to the view file. The third property is optional and defines the controller associated with the view. There are more properties that can be used, so check the documentation for more properties.
+        ```
+        $stateprovider
+          .state("StateName", {
+            url : "/products",
+            templateurl : "app/products/productsView.html",
+            controller : "ProductController as vm"
+          })
+        ```
+        
+    2) Define the routes in the code
+        The state configuration can be placed in the main application file using the `config` method of the angular module as in the example below. This method takes an array as an argument which has the string names of the parameters followed by an actual function as the last element of the array.
+        ```
+        angular.module("theApp", [...])
+          .config(["$stateProvider", function($stateProvider) {
+          
+            // code from above goes here.
+          
+          }]);
+        ```
+    3) Define a default State for the application
+      If you access the URL fragment directly you'll be able to see the view. However it is useful to define a default view for the application. This is done using the `urlRouterProvider` service. This service watches the `$location` variable for changes to the URL. Whenever the URL changes it tries to find a matching state and then activates that state. It also provides an `otherwise()` method for defining the default URL.
+      ```
+      app.config(["$stateProvider", "$urlRouterProvider", 
+        function($stateProvider, $urlRouterProvider) {
+          $urlRouterProvider.otherwise("/products");
+        }]);
+      ```
+
+
+### Activating a route
+There are 3 ways to activate a route
+1) **Set the URL**
+2) **Use code**
+  Using the `$state.go("productList");` method call. The argument is the state name and **not** the URL fragment
+3) **Click a link**
+    Links need to use the `ui-sref` directive to navigate to a state. **Note** that his technique also uses the state name and **not** the URL fragment.
+    ```
+    <a ui-sref="productList">
+    </a>
+    ```
