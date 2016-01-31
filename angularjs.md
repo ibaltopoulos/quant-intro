@@ -124,7 +124,7 @@ Connecting the controller to the view is done using the `ng-controller` directiv
 ```
 
 ## Directives
-#### `ng-repeast` directive
+#### `ng-repeat` directive
 Usually used for dynamically constructing rows of elements in a table.
 
 ```
@@ -252,27 +252,32 @@ We are going to use UI router.
     2) Add the `ui-view` directive
     3) Or use `data-ui-view` if the browser doesn't support the former.
 * **Routes**
-    1) Identify the route states
-        The UI router provides a `$stateprovider` that allwos us to define the various states of the application. Each state is defined using the `state` method. The state method takes 2 arguments, the name of the state and an object. The objects properties are used to define the parameters for the state. The `url` property defines the URL fragment identifier (whatever comes after the #). It is useful for enabling deep linking into the application states and for ensuring that the browser's back and forward buttons work as expected. The `templateurl` property defines the path to the view file. The third property is optional and defines the controller associated with the view. There are more properties that can be used, so check the documentation for more properties.
-        ```
-        $stateprovider
-          .state("StateName", {
-            url : "/products",
-            templateurl : "app/products/productsView.html",
-            controller : "ProductController as vm"
-          })
-        ```
-        
-    2) Define the routes in the code
-        The state configuration can be placed in the main application file using the `config` method of the angular module as in the example below. This method takes an array as an argument which has the string names of the parameters followed by an actual function as the last element of the array.
-        ```
-        angular.module("theApp", [...])
-          .config(["$stateProvider", function($stateProvider) {
-            // code from above goes here.
-          }]);
-        ```
-    3) Define a default State for the application
-      If you access the URL fragment directly you'll be able to see the view. However it is useful to define a default view for the application. This is done using the `urlRouterProvider` service. This service watches the `$location` variable for changes to the URL. Whenever the URL changes it tries to find a matching state and then activates that state. It also provides an `otherwise()` method for defining the default URL.
+  1) Identify the route states
+    The UI router provides a `$stateprovider` that allows us to define the various states of the application. Each state is defined using the `state` method. The state method takes 2 arguments, the name of the state and an object. The objects properties are used to define the parameters for the state.
+     * The `url` property defines the URL fragment identifier (whatever comes after the #). It is useful for enabling deep linking into the application states and for ensuring that the browser's back and forward buttons work as expected. The `url` can contain parameters which are specified with a colon. For example, `/products/:productId` will substitute the `:productId` part with a real id when navigating to that view. 
+     * The `templateurl` property defines the path to the view file. 
+     * The third property is optional and defines the controller associated with the view. There are more properties that can be used, so check the documentation for more properties.
+      ```
+      $stateprovider
+        .state("StateName", {
+          url : "/products",
+          templateurl : "app/products/productsView.html",
+          controller : "ProductController as vm"
+        });
+      ```
+      States can be chained together in a fluent style.
+      
+  2) Define the routes in the code
+    The state configuration can be placed in the main application file using the `config` method of the angular module as in the example below. This method takes an array as an argument which has the string names of the parameters followed by an actual function as the last element of the array. 
+      ```
+      angular.module("theApp", [...])
+        .config(["$stateProvider", function($stateProvider) {
+          // code from above goes here.
+        }]);
+      ```
+      
+  3) Define a default State for the application
+    If you access the URL fragment directly you'll be able to see the view. However it is useful to define a default view for the application. This is done using the `$urlRouterProvider` service. This service watches the `$location` variable for changes to the URL. Whenever the URL changes it tries to find a matching state and then activates that state. It also provides an `otherwise()` method for defining the default URL.
       ```
       app.config(["$stateProvider", "$urlRouterProvider", 
         function($stateProvider, $urlRouterProvider) {
@@ -283,12 +288,83 @@ We are going to use UI router.
 
 ### Activating a route
 There are 3 ways to activate a route
-  1) **Set the URL**
-  2) **Use code**
-      Using the `$state.go("productList");` method call. The argument is the state name and **not** the URL fragment
-  3) **Click a link**
-      Links need to use the `ui-sref` directive to navigate to a state. **Note** that his technique also uses the state name and **not** the URL fragment.
-      ```
-      <a ui-sref="productList">
-      </a>
-      ```
+1) **Set the URL**
+2) **Use code**
+    Using the `$state.go("productList");` method call. The argument is the state name and **not** the URL fragment
+3) **Click a link**
+    Links need to use the `ui-sref` directive to navigate to a state. **Note** that his technique also uses the state name and **not** the URL fragment.
+    ```
+    <a ui-sref="productList">
+    </a>
+    ```
+
+### Using resolve to pre-load data 
+The object used in the definition of the state can take an extra argument to pre-load the data for a particular state.
+
+`Resolve` is a property of the state configuration object that can be attached to a route. It can provide custom data to the defined controller. It identifies a set of dependencies that can be used and injected in the controller. If the dependency is a promise, the promise is resolved before the controller gets instantiated and the route gets changed. So if the code is retrieving data, the code waits until the data is fetched before switching and displaying the view. These dependencies are defined using key-value pairs, where key is the name of the dependency and the value is a string of the service that can be injected, or a function.
+
+```
+$stateprovider
+  .state("StateName", {
+    url : "/products",
+    templateurl : "app/products/productsView.html",
+    controller : "ProductController as vm",
+    
+    resolve : {
+      anyServiceName : "The string name of the service dependency",
+      
+      product : function(anyServiceName, $stateParams) {
+        var productId = $stateParams.productId;
+        return anyServiceName.get(
+          { productId : productId }).$promise;
+      }
+    }
+  });
+
+```
+
+In the example above the `anyServiceName` key can have any name. The actual value is the name of the service as defined previously.The resolve assumes that any string name provided as a value is an alias for the service.
+
+The second property of the resolve object defines a dependency on the result of a function. The function is used to fetch the data from the service. To pass parameters to the service call, we use the `$stateParams` service defined by UI router. This service is populated with the available parameters for this state. To ensure that the function execution is delayed we use the `$promise`.
+
+
+### Nested views (wizards)
+Nested views are named using a dot notation (`MainState.NestedView`) and are defined in the state definition like a normal state.
+
+![router-states-nested-views](img/router-states-nested-views.jpg)
+
+In code this could be done as follows.
+```
+.state("productEdit", {
+  url : "/product/edit/:productId",
+  templateurl : "app/products/productEditView.html",
+  controller : "ProductEditCtrl as vm"
+})
+.state("productEdit.info", {
+  url : "/info",
+  templateurl : "app/product/productEditInforView.html",
+})
+.state("productEdit.price", {
+  url : "/price",
+  templateurl : "app/product/productEditPriceView.html",
+})
+...
+```
+**Note** 
+1) The nested views do not require a controller definition. The nested views can share the controller from the parent state. 
+2) Take note of the urls of the nested states.
+3) To resolve data for nested states, we can get the required data in the parent state, and pass that information do the nested states.
+
+#### Abstract state
+When a parent state is meaningless to display without one of its nested states, then we can declare it as an Abstract state. An abstract state cannot be explicitly activated and any attempt to activate it throws an exception. It is activated implicitly when one of its child states gets activated.
+
+To declare a state as abstract add it as an extra property in the state configuration as below.
+
+```
+.state("productEdit", {
+  abstract : true,
+  url : "/product/edit/:productId",
+  templateurl : "app/products/productEditView.html",
+  controller : "ProductEditCtrl as vm"
+})
+```
