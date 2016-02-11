@@ -368,3 +368,52 @@ To declare a state as abstract add it as an extra property in the state configur
   controller : "ProductEditCtrl as vm"
 })
 ```
+
+## Directives
+### Using a directive
+Directives can be used in 4 different ways. Of those only the first two are recommended.
+  1) **As attributes on existing html tags** 
+      ```
+      <div my-directive>
+      ```
+  2) **As new html tags** 
+      ```
+      <my-directive></my-directive>
+      ```
+  3) **NOT RECOMMENDED** As classes  
+      ```
+      <div class="my-directive">
+      ```
+  4) **NOT RECOMMENDED** As comments  
+      ```
+      <!-- my-directive -->
+      <div>
+      ```    
+
+### Creating a directive
+To create a directive get the module and add a directive
+```
+angular.module("portfolioDashboardApp.services")
+    .directive("exposuresChart", exposuresChart);
+    
+
+function exposuresChart() {
+    return { ... };
+};
+```
+**NOTE**: When creating the directive we use camel case. However when using the directive as an attribute we need to add dashes (-) or underscores (_) between the various words.
+```
+<div exposures-chart>...</div>
+```
+
+The returned object from the directive has certain properties
+* **restrict**: This defines how the directive is to be used, as an **A**ttribute, **E**lement, **C**omment or **C**lass
+* **template**: The string passed in the template is what gets embedded inside the directive element. However this can get a bit complex so we can use external templates.
+* **templateUrl**: When the template string gets too unwieldy put the html in an external file and use this attribute to point to the file instead.
+* **replace**: This instructs angular to replace the directive inside the dom? When replace is set to `true` the template html needs to be wrapped in a root level node.
+* **controller**: We can place functions inside the directive so that it responds to user interaction
+
+### Types of directives
+* **Component/Widget**: Data and associated display
+* **Decorator**: ng-click, ng-show, ng-hide
+* **Structural/templating**: ng-repeat
