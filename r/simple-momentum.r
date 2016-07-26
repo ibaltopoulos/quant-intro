@@ -394,3 +394,247 @@ chart.TimeSeries(log(cumprod(1+mutualFunds)), legend.loc="topleft")
 
 fiveStats(etfs)
 fiveStats(mutualFunds)
+
+
+
+
+
+
+
+
+### Percentile chennels
+require(quantmod)
+require(caTools)
+require(PerformanceAnalytics)
+require(TTR)
+getSymbols(c("LQD", "DBC", "VTI", "ICF", "SHY"), from="1990-01-01")
+
+prices <- cbind(Ad(LQD), Ad(DBC), Ad(VTI), Ad(ICF), Ad(SHY))
+prices <- prices[!is.na(prices[,2]),]
+returns <- Return.calculate(prices)
+cashPrices <- prices[, 5]
+assetPrices <- prices[, -5]
+
+require(caTools)
+pctChannelPosition <- function(prices,
+                               dayLookback = 60, 
+                               lowerPct = .25, upperPct = .75) {
+  leadingNAs <- matrix(nrow=dayLookback-1, ncol=ncol(prices), NA)
+  
+  upperChannels <- runquantile(prices, k=dayLookback, probs=upperPct, endrule="trim")
+  upperQ <- xts(rbind(leadingNAs, upperChannels), order.by=index(prices))
+  
+  lowerChannels <- runquantile(prices, k=dayLookback, probs=lowerPct, endrule="trim")
+  lowerQ <- xts(rbind(leadingNAs, lowerChannels), order.by=index(prices))
+  
+  positions <- xts(matrix(nrow=nrow(prices), ncol=ncol(prices), NA), order.by=index(prices))
+  positions[prices > upperQ & lag(prices) < upperQ] <- 1 #cross up
+  positions[prices < lowerQ & lag(prices) > lowerQ] <- -1 #cross down
+  positions <- na.locf(positions)
+  positions[is.na(positions)] <- 0
+  
+  colnames(positions) <- colnames(prices)
+  return(positions)
+}
+
+#find our positions, add them up
+d60 <- pctChannelPosition(assetPrices)
+d120 <- pctChannelPosition(assetPrices, dayLookback = 120)
+d180 <- pctChannelPosition(assetPrices, dayLookback = 180)
+d252 <- pctChannelPosition(assetPrices, dayLookback = 252)
+compositePosition <- (d60 + d120 + d180 + d252)/4
+
+compositeMonths <- compositePosition[endpoints(compositePosition, on="months"),]
+
+returns <- Return.calculate(prices)
+monthlySD20 <- xts(sapply(returns[,-5], runSD, n=20), order.by=index(prices))[index(compositeMonths),]
+weight <- compositeMonths*1/monthlySD20
+weight <- abs(weight)/rowSums(abs(weight))
+weight[compositeMonths < 0 | is.na(weight)] <- 0
+weight$CASH <- 1-rowSums(weight)
+
+#not actually equal weight--more like composite weight, going with 
+#Michael Kapler's terminology here
+ewWeight <- abs(compositeMonths)/rowSums(abs(compositeMonths))
+ewWeight[compositeMonths < 0 | is.na(ewWeight)] <- 0
+ewWeight$CASH <- 1-rowSums(ewWeight)
+
+rpRets <- Return.portfolio(R = returns, weights = weight)
+ewRets <- Return.portfolio(R = returns, weights = ewWeight)
+
+
+both <- cbind(rpRets, ewRets)
+colnames(both) <- c("RiskParity", "Equal Weight")
+charts.PerformanceSummary(both)
+rbind(table.AnnualizedReturns(both), maxDrawdown(both))
+apply.yearly(both, Return.cumulative)
+
+
+
+
+
+### Protective Asset Allocation (PAA) 
+# http://indexswingtrader.blogspot.co.uk/2016/04/introducing-protective-asset-allocation.html
+# http://indexswingtrader.blogspot.co.uk/p/strategy-signals.html
+
+
+
+### The PAA model will be backtested from Dec 1970 - Dec 2015 (45 years) on monthly total return data (see paper for data construction). The universe of choice is a global diversified multi-asset universe consisting of proxies for 12 so called "risky" ETFs: SPY, QQQ, IWM (US equities: S&P500, Nasdaq100 and Russell2000 Small Cap), VGK, EWJ (Developed International Market equities: Europe and Japan), EEM (Emerging Market equities), IYR, GSG, GLD (Alternatives: REIT, Commodities, Gold), HYG, LQD and TLT (US High Yield bonds, US Investment Grade Corporate bonds and Long Term US Treasuries). The broadness of the universe makes it suitable for harvesting risk premia during different economical regimes. 
+
+
+
+risk_on <- c("SPY", "QQQ", "EFA", "EEM", "GLD", "GSG", "IYR", "UUP", "HYG", "LQD", "IWM")
+risk_off <- c("SHY", "IEF", "AGG", "TLT")
+
+symbols <- c(risk_on, risk_off)
+
+etf_names <- c(
+  "SPDR S&P 500 ETF Trust",
+  "NASDAQ- 100 Index Tracking Stock",
+  "iShares MSCI EAFE Index Fund (ETF)",
+  "iShares MSCI Emerging Markets Indx (ETF)",
+  "SPDR Gold Trust (ETF)",
+  "iShares S&P GSCI Commodity-Indexed Trust",
+  "iShares Dow Jones US Real Estate (ETF)",
+  "PowerShares DB US Dollar Bullish ETF",
+  "iShares iBoxx $ High Yid Corp Bond (ETF)",
+  "iShares IBoxx $ Invest Grade Corp Bd Fd",
+  "iShares Russell 2000 Index (ETF)",
+  "iShares 1-3 Year Treasury Bond",
+  "iShares Barclays 7-10 Year Trasry Bnd Fd",
+  "iShares Barclays Aggregate Bond Fund",
+  "iShares Barclays 20+ Yr Treas.Bond (ETF)")
+
+getSymbols(symbols, from = "1990-01-01")
+prices.daily <- list()
+for(i in 1:length(symbols)) {
+  prices.daily[[i]] <- Ad(get(symbols[i]))  
+}
+prices.daily <- do.call(cbind, prices.daily)
+prices.daily <- na.omit(prices.daily)
+colnames(prices.daily) <- gsub("\\.[A-z]*", "", colnames(prices.daily))
+
+returns.daily <- na.omit(Return.calculate(prices.daily))
+
+
+prices.monthly <- xts(apply(prices.daily, 2, function(x) Cl(to.monthly(x))), 
+                      order.by=index(to.monthly(prices.daily)))
+prices.weekly <- xts(apply(prices.daily, 2, function(x) Cl(to.weekly(x))), 
+                     order.by=index(to.weekly(prices.daily)))
+  
+  Cl(to.monthly(prices.daily))
+
+
+
+
+
+ep <- endpoints(returns, on = "months")
+
+prices.monthly <- endpoints(prices, on = "months")
+
+prices[prices.monthly]
+
+prices.weekly <- prices[endpoints(prices, on = "weeks")]
+
+
+sma39wk <- function(x)  SMA(x, n=39)
+sma.prices  <- xts(apply(prices.weekly, 2, sma39wk), 
+                   order.by=index(prices.weekly) ) 
+
+plot(prices.weekly[,1])
+lines(sma.prices[,1], col="red")
+
+
+lines(prices.weekly[,1])
+head(prices.weekly)
+
+plot(sma.prices)
+lines(prices.weekly, col="red")
+
+
+
+
+
+getSymbols('SPY', from = '1990-01-01', src = 'yahoo')
+adjustedPrices <- Ad(SPY)
+monthlyAdj <- to.monthly(adjustedPrices, OHLC=TRUE)
+
+spySMA <- SMA(Cl(monthlyAdj), 10)
+spyROC <- ROC(Cl(monthlyAdj), 10)
+spyRets <- Return.calculate(Cl(monthlyAdj))
+
+smaRatio <- Cl(monthlyAdj)/spySMA - 1
+smaSig <- smaRatio > 0
+rocSig <- spyROC > 0
+
+smaRets <- lag(smaSig) * spyRets
+rocRets <- lag(rocSig) * spyRets
+
+strats <- na.omit(cbind(smaRets, rocRets, spyRets))
+colnames(strats) <- c("SMA10", "MOM10", "BuyHold")
+charts.PerformanceSummary(strats, main = "strategies")
+rbind(table.AnnualizedReturns(strats), maxDrawdown(strats), CalmarRatio(strats))
+
+
+
+
+
+
+
+prices.weekly.sma <- apply(prices.weekly, 
+
+
+
+weights <- list()
+#remove cash from asset returns
+riskOffRets <- returns[, risk_off]
+riskOnRets <- returns[, risk_on]
+
+prices.sma <- SMA(prices[,1], n = 60)
+plot(prices.sma)
+lines(prices[,1], col="red")
+dev.new()
+
+lookback <- 1
+i<-2
+rank(Return.cumulative(riskOnRets[ep[i]:ep[i+1]]))
+
+
+
+
+
+for(i in 2:(length(ep) - lookback)) {
+  retSubset <- riskOnRets[ep[i]:ep[i+lookback]]
+  
+  #forecast is the cumulative return of the lookback period
+  forecast <- Return.cumulative(retSubset)
+  
+  #annualized (realized) volatility uses a 22-day lookback period
+  annVol <- StdDev.annualized(tail(retSubset, 22))
+  
+  #rank the forecasts (the cumulative returns of the lookback)
+  rankForecast <- rank(forecast) - ncol(assetRets) + topN
+  
+  #weight is inversely proportional to annualized vol
+  weight <- 1/annVol
+  
+  #zero out anything not in the top N assets
+  weight[rankForecast <= 0] <- 0
+  
+  #normalize and zero out anything with a negative return
+  weight <- weight/sum(weight)
+  weight[forecast < 0] <- 0
+  
+  #compute forecasted vol of portfolio
+  forecastVol <- sqrt(as.numeric(t(weight)) %*% 
+                        cov(retSubset) %*% 
+                        as.numeric(weight)) * sqrt(scale)
+  
+  #if forecasted vol greater than vol limit, cut it down
+  if(as.numeric(forecastVol) > annVolLimit) {
+    weight <- weight * annVolLimit/as.numeric(forecastVol)
+  }
+  weights[[i]] <- xts(weight, order.by=index(tail(retSubset, 1)))
+}
+
+
