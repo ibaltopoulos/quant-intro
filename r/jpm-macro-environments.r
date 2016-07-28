@@ -29,7 +29,9 @@ c <- consumer_sentiment["2002/2015"][,1]
 
 c
 
-plot(rollapply(cbind(m,c), 12, function(x) cor(x[,1], x[,2]), by.column = FALSE))
+plot(rollapply(cbind(m,c), 36, function(x) cor(x[,1], x[,2]), by.column = FALSE))
+lines(rollapply(cbind(m,c), 24, function(x) cor(x[,1], x[,2]), by.column = FALSE), col="red")
+lines(rollapply(cbind(m,c), 12, function(x) cor(x[,1], x[,2]), by.column = FALSE), col="blue")
 
 cor(m,c)
 
