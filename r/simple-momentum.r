@@ -514,17 +514,20 @@ prices.daily <- do.call(cbind, prices.daily)
 prices.daily <- na.omit(prices.daily)
 colnames(prices.daily) <- gsub("\\.[A-z]*", "", colnames(prices.daily))
 
-returns.daily <- na.omit(Return.calculate(prices.daily))
-
-
 prices.monthly <- xts(apply(prices.daily, 2, function(x) Cl(to.monthly(x))), 
                       order.by=index(to.monthly(prices.daily)))
+
 prices.weekly <- xts(apply(prices.daily, 2, function(x) Cl(to.weekly(x))), 
                      order.by=index(to.weekly(prices.daily)))
   
-  Cl(to.monthly(prices.daily))
+returns.daily <- na.omit(Return.calculate(prices.daily))  
 
 
+
+
+
+length(apply(prices.daily, 2, function(x) Cl(to.weekly(x, drop.time=TRUE))))
+length(index(to.weekly(prices.daily, drop.time=TRUE)))
 
 
 
@@ -638,3 +641,9 @@ for(i in 2:(length(ep) - lookback)) {
 }
 
 
+
+
+
+
+
+#Reproduce this research https://blog.thinknewfound.com/2014/03/jack-of-all-trades/
