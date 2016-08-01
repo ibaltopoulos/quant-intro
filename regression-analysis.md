@@ -41,10 +41,12 @@ $$  z = \frac{X - M}{SD} $$
 where X is a score on an original scale (raw score)
 M is the mean and SD is the standard deviation.
 
-The mean Z score is going to be 0. $Z = 0$. So a positive Z score means that the observation was above average, whereas a negative Z score means that the observation was below average.
+The mean Z score is going to be 0. \\( Z = 0 \\). So a positive Z score means that the observation was above average, whereas a negative Z score means that the observation was below average.
+
+The units of the quantity is measured in number of standard deviations.
 
 * Percentile ranking
-We can easily get percentile rank. If something has Z = 0 then 50% of the distribution falls below the mean.
+  We can easily get percentile rank. If something has Z = 0 then 50% of the distribution falls below the mean.
 
 ### Summary statistics
 
@@ -150,9 +152,9 @@ $$ Y = B_0 + B_1 X_1 + e $$
 
   B is the regression coefficient, \\( B_0 \\) is the intercept known as the regression constant, \\( B_1 \\) is the slope known as the regression coefficient.
 
-  Model $R$. The correlation between the predicted scores and the observed scores.
+  Model \\( R \\). The correlation between the predicted scores and the observed scores.
   
-  Model $R^2$. The proportion of variance in Y explained by the model.
+  Model \\( R^2 \\). The proportion of variance in Y explained by the model.
 
 * Evaluate a regression model
 
