@@ -1,6 +1,10 @@
 library(Quandl)
 
-Quandl.api_key("6T2HosV8DZesGX53AyLy")
+setwd("D:/Github/quant-intro/r")
+
+source("secrets.r")
+
+Quandl.api_key(api_key = quandl.apikey)
 trade_weighted_usd = Quandl("FRED/DTWEXM", type="xts")
 volatility_index = Quandl("CBOE/VIX", type="xts")
 wti_crude_oil_prices = Quandl("FRED/DCOILWTICO", type="xts")
