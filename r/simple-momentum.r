@@ -740,3 +740,55 @@ returns <- na.omit(returns)
 portfolio.returns <- Return.portfolio(R = returns, weights = ivy.weights, rebalance_on = "months")
 charts.PerformanceSummary(portfolio.returns)
 rbind(table.AnnualizedReturns(portfolio.returns), maxDrawdown(portfolio.returns), CalmarRatio(portfolio.returns))
+
+table.AnnualizedReturns(returns)
+
+smaCrossOver <- function(months, pcs, rtns) {
+  sma <- SMA(pcs, months)
+  signal <- sma < pcs
+  returns <- lag(signal) * rtns
+  table.AnnualizedReturns(returns)
+}
+
+DBB.SMA9 <- SMA(prices$DBB, 9)
+DBB.SMA6 <- SMA(prices$DBB, 6)
+DBB.SMA3 <- SMA(prices$DBB, 3)
+
+sma9Sig <- DBB.SMA9 < prices$DBB
+sma6Sig <- DBB.SMA6 < prices$DBB
+sma3Sig <- DBB.SMA3 < prices$DBB
+
+returns.dbb <- 0.5 * lag(sma9Sig) * returns$DBB + 0.5 * lag(sma6Sig) * returns$DBB
+returns.dbb <- lag(sma3Sig) * returns$DBB
+
+table.AnnualizedReturns(returns$DBB)
+t <- table.AnnualizedReturns(returns.dbb)
+charts.PerformanceSummary(returns.dbb)
+
+perf <- list()
+for (i in 1:12) {
+  perf[[i]] <- smaCrossOver(i, prices$DBP, returns$DBP)
+  colnames(perf[[i]]) <- i
+}
+perf <- do.call(cbind, perf)
+
+## VTI  8
+## VO   5
+## VB   6
+## IWC  9
+## VEU  4
+## VWO  4
+## GWX  7
+## EWX  4
+## BND  7
+## TIP  8
+## BWX  1
+## ESD  10
+## VNQ  7
+## RWX  7
+## IGF  7
+## TREE.L NONE!
+## DBA  NONE
+## DBE  NONE
+## DBB  3 but dangerous NONE
+## DBP  7
