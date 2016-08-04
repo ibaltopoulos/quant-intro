@@ -584,23 +584,23 @@ rbind(table.AnnualizedReturns(strats), maxDrawdown(strats), CalmarRatio(strats))
 
 
 
-prices.weekly.sma <- apply(prices.weekly, 
+prices.weekly.sma <- apply(prices.weekly)
 
 
 
-weights <- list()
+
 #remove cash from asset returns
-riskOffRets <- returns[, risk_off]
-riskOnRets <- returns[, risk_on]
+#riskOffRets <- returns[, risk_off]
+#riskOnRets <- returns[, risk_on]
 
-prices.sma <- SMA(prices[,1], n = 60)
-plot(prices.sma)
-lines(prices[,1], col="red")
-dev.new()
+#prices.sma <- SMA(prices[,1], n = 60)
+#plot(prices.sma)
+#lines(prices[,1], col="red")
 
-lookback <- 1
-i<-2
-rank(Return.cumulative(riskOnRets[ep[i]:ep[i+1]]))
+
+#lookback <- 1
+#i<-2
+
 
 
 
@@ -647,3 +647,96 @@ for(i in 2:(length(ep) - lookback)) {
 
 
 #Reproduce this research https://blog.thinknewfound.com/2014/03/jack-of-all-trades/
+
+
+
+
+
+
+
+
+### Ivy portfolio
+
+
+category <- c("Domestic Large Cap", 
+              "Domestic Mid Cap", 
+              "Domestic Small Cap", 
+              "Domestic Micro Cap", 
+              "Foreign Developed Stocks", 
+              "Foreign Emerging Stocks",
+              "Foreign Developed Small Cap",
+              "Foreign Emerging Small Cap",
+              "Domestic Bonds",
+              "TIPS",
+              "Foreign Bonds",
+              "Emerging Bonds",
+              "Real Estate",
+              "Foreign Real Estate",
+              "Infrastructure",
+              "Timber",
+              "Commodities - Agriculture",
+              "Commodities - Energy",
+              "Commodities - Base Metals",
+              "Commodities - Precious Metals")
+  
+products <- c("Vanguard Total Stock Market ETF",
+              "Vanguard Mid-Cap ETF", 
+              "Vanguard Small-Cap ETF", 
+              "iShares Micro-Cap ETF",
+              "Vanguard FTSE All-World ex-US ETF",
+              "Vanguard FTSE Emerging Markets ETF",
+              "SPDR S&P International Small Cap ETF",
+              "SPDR S&P Emerging Markets Small Cap ETF",
+              "Vanguard Total Bond Market ETF",
+              "iShares TIPS Bond ETF",
+              "SPDR Barclays International Treasury Bond ETF",
+              "Western Asset Emerging Markets Debt Fund",
+              "Vanguard REIT Index Fund", 
+              "SPDR Dow Jones® International Real Estate ETF",
+              "iShares Global Infrastructure ETF",
+              "Cambium Global Timberland Limited",
+              "PowerShares DB Agriculture ETF",
+              "PowerShares DB Energy ETF",
+              "PowerShares DB Base Metals ETF",
+              "PowerShares DB Precious Metals ETF")
+symbols <- c(
+  "VTI",
+  "VO", 
+  "VB",
+  "IWC",
+  "VEU",
+  "VWO",
+  "GWX",
+  "EWX",
+  "BND",
+  "TIP",
+  "BWX",
+  "ESD",
+  "VNQ",
+  "RWX",
+  "IGF",
+  "TREE.L",
+  "DBA",
+  "DBE",
+  "DBB",
+  "DBP")
+ivy.weights <- rep(0.05, 20)
+
+
+getSymbols(symbols, from="1990-01-01")
+prices <- list()
+for(i in 1:length(symbols)) {
+  adjustedPrices <- Ad(get(symbols[i]))
+  colnames(adjustedPrices) <- gsub("\\.[A-z]*", "", colnames(adjustedPrices))
+  prices[[i]] <- Cl(to.monthly(adjustedPrices, indexAt = "yearmon", drop.time = TRUE))
+  colnames(prices[[i]]) <- symbols[i]
+}
+prices <- do.call(cbind, prices)
+colnames(prices) <- gsub("\\.[A-z]*", "", colnames(prices))
+
+returns <- Return.calculate(prices)
+returns <- na.omit(returns)
+
+portfolio.returns <- Return.portfolio(R = returns, weights = ivy.weights, rebalance_on = "months")
+charts.PerformanceSummary(portfolio.returns)
+rbind(table.AnnualizedReturns(portfolio.returns), maxDrawdown(portfolio.returns), CalmarRatio(portfolio.returns))
