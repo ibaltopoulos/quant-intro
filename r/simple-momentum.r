@@ -747,8 +747,11 @@ smaCrossOver <- function(months, pcs, rtns) {
   sma <- SMA(pcs, months)
   signal <- sma < pcs
   returns <- lag(signal) * rtns
-  table.AnnualizedReturns(returns)
+  return(returns)
 }
+
+ 
+
 
 DBB.SMA9 <- SMA(prices$DBB, 9)
 DBB.SMA6 <- SMA(prices$DBB, 6)
@@ -771,6 +774,40 @@ for (i in 1:12) {
   colnames(perf[[i]]) <- i
 }
 perf <- do.call(cbind, perf)
+
+
+returns.timing <- data.frame(
+  VTI <- smaCrossOver(8, prices$VTI, returns$VTI),
+  VO <- smaCrossOver(5, prices$VO, returns$VO),
+  VB <- smaCrossOver(6, prices$VB, returns$VB),
+  IWC <- smaCrossOver(9, prices$VO, returns$VO),
+  VEU <- smaCrossOver(4, prices$VEU, returns$VEU),
+  VWO <- smaCrossOver(4, prices$VWO, returns$VWO),
+  GWX <- smaCrossOver(7, prices$GWX, returns$GWX),
+  EWX <- smaCrossOver(4, prices$EWX, returns$EWX),
+  BND <- smaCrossOver(7, prices$BND, returns$BND),
+  TIP <- smaCrossOver(8, prices$TIP, returns$TIP),
+  BWX <- smaCrossOver(1, prices$BWX, returns$BWX),
+  ESD <- smaCrossOver(10, prices$ESD, returns$ESD),
+  VNQ <- smaCrossOver(7, prices$VNQ, returns$VNQ),
+  RWX <- smaCrossOver(7, prices$RWX, returns$RWX),
+  IGF <- smaCrossOver(7, prices$IGF, returns$IGF),
+  TREE <- smaCrossOver(1, prices$TREE, returns$TREE),
+  DBA <- smaCrossOver(1, prices$DBA, returns$DBA),
+  DBE <- smaCrossOver(1, prices$DBE, returns$DBE),
+  DBB <- smaCrossOver(3, prices$DBB, returns$DBB),
+  DBP <- smaCrossOver(7, prices$DBP, returns$DBP)
+)
+colnames(returns.timing) <- symbols
+
+returns.timing <- xts(returns.timing, order.by = index(returns$VTI))
+
+timing.portfolio.returns <- Return.portfolio(R = returns.timing, weights = ivy.weights, rebalance_on = "months")
+charts.PerformanceSummary(timing.portfolio.returns)
+rbind(table.AnnualizedReturns(timing.portfolio.returns), 
+      maxDrawdown(timing.portfolio.returns), 
+      CalmarRatio(timing.portfolio.returns))
+
 
 ## VTI  8
 ## VO   5
