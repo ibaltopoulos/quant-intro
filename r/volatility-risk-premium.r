@@ -41,3 +41,20 @@ stats <- data.frame(cbind(Return.annualized(stratRets)*100,
 
 colnames(stats) <- c("Annualized Return", "Max Drawdown", "Annualized Sharpe")
 stats$MAR <- as.numeric(stats[1])/as.numeric(stats[2])
+
+
+library(changepoint)
+require(xts)
+require(quantmod)
+require(PerformanceAnalytics)
+require(TTR)
+getSymbols('SPY', from = '1990-01-01', src = 'yahoo')
+adjustedPrices <- Ad(SPY)
+dev.new()
+plot(adjustedPrices)
+mvalue <- cpt.mean(SPY, method = "PELT")
+cpts(mvalue)
+
+
+
+
