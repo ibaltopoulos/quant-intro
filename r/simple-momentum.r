@@ -519,7 +519,7 @@ prices.monthly <- xts(apply(prices.daily, 2, function(x) Cl(to.monthly(x))),
 
 prices.weekly <- xts(apply(prices.daily, 2, function(x) Cl(to.weekly(x))), 
                      order.by=index(to.weekly(prices.daily)))
-  
+
 returns.daily <- na.omit(Return.calculate(prices.daily))  
 
 
@@ -678,7 +678,7 @@ category <- c("Domestic Large Cap",
               "Commodities - Energy",
               "Commodities - Base Metals",
               "Commodities - Precious Metals")
-  
+
 products <- c("Vanguard Total Stock Market ETF",
               "Vanguard Mid-Cap ETF", 
               "Vanguard Small-Cap ETF", 
@@ -743,14 +743,14 @@ rbind(table.AnnualizedReturns(portfolio.returns), maxDrawdown(portfolio.returns)
 
 table.AnnualizedReturns(returns)
 
-smaCrossOver <- function(months, pcs, rtns) {
-  sma <- SMA(pcs, months)
+smaCrossOver <- function(periods, pcs, rtns) {
+  sma <- SMA(pcs, periods)
   signal <- sma < pcs
   returns <- lag(signal) * rtns
   return(returns)
 }
 
- 
+
 
 
 DBB.SMA9 <- SMA(prices$DBB, 9)
@@ -829,3 +829,43 @@ rbind(table.AnnualizedReturns(timing.portfolio.returns),
 ## DBE  NONE
 ## DBB  3 but dangerous NONE
 ## DBP  7
+
+symbols.ivy5 = c("VTI", "VEU", "BND", "VNQ", "DBC")
+
+getSymbols(symbols.ivy5, from="1990-01-01")
+prices <- list()
+for(i in 1:length(symbols.ivy5)) {
+  adjustedPrices <- Ad(get(symbols.ivy5[i]))
+  colnames(adjustedPrices) <- gsub("\\.[A-z]*", "", colnames(adjustedPrices))
+  prices[[i]] <- adjustedPrices
+  colnames(prices[[i]]) <- symbols.ivy5[i]
+}
+prices <- do.call(cbind, prices)
+colnames(prices) <- gsub("\\.[A-z]*", "", colnames(prices))
+
+returns <- Return.calculate(prices)
+returns <- na.omit(returns)
+
+
+smaCrossOver <- function(periods, pcs, rtns) {
+  sma <- SMA(pcs, periods)
+  signal <- sma < pcs
+  returns <- lag(signal) * rtns
+  return(returns)
+}
+
+strategy.vti <- smaCrossOver(8 * 30, prices$VTI, returns$VTI)
+table.AnnualizedReturns(strategy.vti)[3,]
+optimal <- sapply(1:360, FUN = function(p) table.AnnualizedReturns(smaCrossOver(p, prices$BND, returns$BND))[3,])
+optimal.period <- which.max(optimal)
+signal <- SMA(prices$BND, optimal.period) < prices$BND #& SMA(prices$VTI, 240) < prices$VTI
+strategy <- lag(signal) * returns$BND
+rbind(table.AnnualizedReturns(strategy), maxDrawdown(strategy), CalmarRatio(strategy))
+
+
+plot(cbind(1:360, optimal))
+rollapply(optimal, width = 7, FUN = mean, align = "right")
+## VTI 86 and 240 lookback for daily returns
+## VEU 134
+## BND
+
