@@ -847,6 +847,10 @@ returns <- Return.calculate(prices)
 returns <- na.omit(returns)
 
 
+getSymbols("DDP", from="1990-01-01")
+prices$DDP <- Ad(DDP)
+returns$DDP <- Return.calculate(prices$DDP)
+
 smaCrossOver <- function(periods, pcs, rtns) {
   sma <- SMA(pcs, periods)
   signal <- sma < pcs
@@ -856,16 +860,61 @@ smaCrossOver <- function(periods, pcs, rtns) {
 
 strategy.vti <- smaCrossOver(8 * 30, prices$VTI, returns$VTI)
 table.AnnualizedReturns(strategy.vti)[3,]
-optimal <- sapply(1:360, FUN = function(p) table.AnnualizedReturns(smaCrossOver(p, prices$BND, returns$BND))[3,])
+optimal <- sapply(1:360, FUN = function(p) table.AnnualizedReturns(smaCrossOver(p, prices$DBC, returns$DBC))[3,])
 optimal.period <- which.max(optimal)
-signal <- SMA(prices$BND, optimal.period) < prices$BND #& SMA(prices$VTI, 240) < prices$VTI
-strategy <- lag(signal) * returns$BND
+signal <- SMA(prices$DBC, optimal.period) < prices$DBC #& SMA(prices$VTI, 240) < prices$VTI
+short.signal <- !signal
+strategy <- lag(signal) * returns$DBC #+ lag(short.signal) * returns$DDP
 rbind(table.AnnualizedReturns(strategy), maxDrawdown(strategy), CalmarRatio(strategy))
 
+charts.PerformanceSummary(strategy)
 
 plot(cbind(1:360, optimal))
 rollapply(optimal, width = 7, FUN = mean, align = "right")
 ## VTI 86 and 240 lookback for daily returns
 ## VEU 134
-## BND
+## BND 328
+## VNQ 347
+## DBC 70
+chart.TimeSeries(prices$DDP)
+charts.PerformanceSummary(returns$DDP)
+charts.PerformanceSummary(strategy)
+
+
+
+#### SECTOR ROTATION
+######
+printPerf <- function(strategy) {
+  rbind(table.AnnualizedReturns(strategy), maxDrawdown(strategy), CalmarRatio(strategy))
+}
+
+findOptimalLookback <- function(prices, returns) {
+  optimal <- sapply(1:360, FUN = function(p) table.AnnualizedReturns(smaCrossOver(p, prices, returns))[3,])
+  optimal.period <- which.max(optimal)
+  signal <- SMA(prices, optimal.period) < prices
+  short.signal <- !signal
+  strategy <- lag(signal) * returns
+  rbind(table.AnnualizedReturns(strategy), maxDrawdown(strategy), CalmarRatio(strategy))
+  return(optimal.period)
+}
+
+symbols.sectors <- c("XBI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
+getSymbols(symbols.sectors, from="1990-01-01")
+prices.sectors <- list()
+for(i in 1:length(symbols.sectors)) {
+  adjustedPrices <- Ad(get(symbols.sectors[i]))
+  colnames(adjustedPrices) <- gsub("\\.[A-z]*", "", colnames(adjustedPrices))
+  prices.sectors[[i]] <- adjustedPrices
+  colnames(prices.sectors[[i]]) <- symbols.sectors[i]
+}
+prices.sectors <- do.call(cbind, prices.sectors)
+colnames(prices.sectors) <- gsub("\\.[A-z]*", "", colnames(prices.sectors))
+
+returns.sectors <- Return.calculate(prices.sectors)
+returns.sectors <- na.omit(returns.sectors)
+
+printPerf(returns.sectors)
+print(cbind("XBI", findOptimalLookback(prices.sectors$XBI, returns.sectors$XBI)))
+
+
 
