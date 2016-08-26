@@ -1,138 +1,74 @@
-###############################################################################
-# Load Systematic Investor Toolbox (SIT)
-###############################################################################
-setInternet2(TRUE)
-con = gzcon(url('http://www.systematicportfolio.com/sit.gz', 'rb'))
-source(con)
-close(con)
+require(xts)
+require(quantmod)
+require(PerformanceAnalytics)
+require(TTR)
 
-# Load supporting R code for Minimum Correlation Algorithm Paper
-con=url('http://www.systematicportfolio.com/mincorr_paper.r')
-source(con)
-close(con)
-
-#*****************************************************************
-# Load historical data sets
-#****************************************************************** 
-load.packages('quantmod')   
-
-#*****************************************************************
-# Load historical data for Futures and Forex
-#****************************************************************** 
-data <- new.env()
-getSymbols.TB(env = data, auto.assign = T, download = T)
-
-bt.prep(data, align='remove.na', dates='1990::')
-save(data,file='FuturesForex.Rdata')
-
-
-#*****************************************************************
-# Load historical data for ETFs
-#****************************************************************** 
-tickers = spl('SPY,QQQ,EEM,IWM,EFA,TLT,IYR,GLD')
-
-data <- new.env()
-getSymbols(tickers, src = 'yahoo', from = '1980-01-01', env = data, auto.assign = T)
-for(i in ls(data)) data[[i]] = adjustOHLC(data[[i]], use.Adjusted=T)                            
-# TLT first date is 7/31/2002
-bt.prep(data, align='keep.all', dates='2002:08::')
-save(data,file='ETF.Rdata')
-
-
-#*****************************************************************
-# Load historical data for dow stock (engle)
-#****************************************************************** 
-load.packages('quantmod,quadprog')
-tickers = spl('AA,AXP,BA,CAT,DD,DIS,GE,IBM,IP,JNJ,JPM,KO,MCD,MMM,MO,MRK,MSFT')
-
-data <- new.env()
-getSymbols(tickers, src = 'yahoo', from = '1980-01-01', env = data, auto.assign = T)
-for(i in ls(data)) data[[i]] = adjustOHLC(data[[i]], use.Adjusted=T)                            
-
-bt.prep(data, align='keep.all', dates='1980::')
-save(data,file='Dow.Engle.Rdata')
-
-
-#*****************************************************************
-# Load historical data for ETFs
-#****************************************************************** 
-load.packages('quantmod,quadprog')
-tickers = spl('VTI,IEV,EEM,EWJ,AGG,GSG,GLD,ICF')
-
-data <- new.env()
-getSymbols(tickers, src = 'yahoo', from = '1980-01-01', env = data, auto.assign = T)
-for(i in ls(data)) data[[i]] = adjustOHLC(data[[i]], use.Adjusted=T)                            
-
-bt.prep(data, align='keep.all', dates='2003:10::')  
-save(data,file='ETF2.Rdata')
-
-
-#*****************************************************************
-# Load historical data for nasdaq 100 stocks
-#****************************************************************** 
-load.packages('quantmod,quadprog')
-#tickers = nasdaq.100.components()
-tickers = spl('ATVI,ADBE,ALTR,AMZN,AMGN,APOL,AAPL,AMAT,ADSK,ADP,BBBY,BIIB,BMC,BRCM,CHRW,CA,CELG,CEPH,CERN,CHKP,CTAS,CSCO,CTXS,CTSH,CMCSA,COST,DELL,XRAY,DISH,EBAY,ERTS,EXPD,ESRX,FAST,FISV,FLEX,FLIR,FWLT,GILD,HSIC,HOLX,INFY,INTC,INTU,JBHT,KLAC,LRCX,LIFE,LLTC,LOGI,MAT,MXIM,MCHP,MSFT,MYL,NTAP,NWSA,NVDA,ORLY,ORCL,PCAR,PDCO,PAYX,PCLN,QGEN,QCOM,RIMM,ROST,SNDK,SIAL,SPLS,SBUX,SRCL,SYMC,TEVA,URBN,VRSN,VRTX,VOD,XLNX,YHOO')
-
-data <- new.env()
-for(i in tickers) {
-  try(getSymbols(i, src = 'yahoo', from = '1980-01-01', env = data, auto.assign = T), TRUE)
-  data[[i]] = adjustOHLC(data[[i]], use.Adjusted=T)                           
+symbols.sectors <- c("XBI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
+getSymbols(symbols.sectors, from="1990-01-01")
+prices.sectors <- list()
+for(i in 1:length(symbols.sectors)) {
+  adjustedPrices <- Ad(get(symbols.sectors[i]))
+  colnames(adjustedPrices) <- gsub("\\.[A-z]*", "", colnames(adjustedPrices))
+  prices.sectors[[i]] <- adjustedPrices
+  colnames(prices.sectors[[i]]) <- symbols.sectors[i]
 }
-bt.prep(data, align='keep.all', dates='1995::')
-save(data,file='nasdaq.100.Rdata')
+prices.sectors <- do.call(cbind, prices.sectors)
+colnames(prices.sectors) <- gsub("\\.[A-z]*", "", colnames(prices.sectors))
+returns.sectors <- Return.calculate(prices.sectors)
+returns.sectors <- na.omit(returns.sectors)
 
 
+returns.window <- returns.sectors["2006::2007"]
 
+minimum.correlation.portfolio <- function(returns) {
+  s0 <- apply(data.frame(returns), 2, sd)
+  correlation <- cor(returns, use='complete.obs', method='pearson') 
+  covariance <- correlation * (s0 %*% t(s0))
+  upper.index <- upper.tri(correlation)
+  cor.m <- correlation[upper.index]
+  cor.mu <- mean(cor.m)
+  cor.sd <- sd(cor.m)
 
-#*****************************************************************
-# Run all strategies
-#****************************************************************** 
-names = spl('ETF,FuturesForex,Dow.Engle,ETF2,nasdaq.100')   
-lookback.len = 60
-periodicitys = spl('weeks,months')
-periodicity = periodicitys[1]
-prefix = paste(substr(periodicity,1,1), '.', sep='')
+  norm.dist.m <- 0 * correlation
+  diag(norm.dist.m) <- NA
+  norm.dist.m[upper.index] <- 1-pnorm(cor.m, cor.mu, cor.sd)
+  norm.dist.m <- (norm.dist.m + t(norm.dist.m))
+  norm.dist.avg <- rowMeans(norm.dist.m, na.rm=T)
+  norm.dist.rank <- rank(-norm.dist.avg)
+  norm.dist.weight <- norm.dist.rank / sum(norm.dist.rank)
+  diag(norm.dist.m) <- 0
+  weighted.norm.dist.average <- norm.dist.weight %*% norm.dist.m
+  final.weight <- weighted.norm.dist.average / sum(weighted.norm.dist.average)
 
+  # re-scale weights to penalize for risk
+  x <- final.weight
+  x <- x / sqrt( diag(covariance) )
 
-
-for(name in names) {
-  load(file = paste(name, '.Rdata', sep=''))
-  
-  obj = portfolio.allocation.helper(data$prices, periodicity, lookback.len = lookback.len, prefix = prefix,
-                                    min.risk.fns = 'min.corr.portfolio,min.corr2.portfolio,max.div.portfolio,min.var.portfolio,risk.parity.portfolio,equal.weight.portfolio',
-                                    custom.stats.fn = 'portfolio.allocation.custom.stats')      
-  
-  save(obj, file=paste(name, lookback.len, periodicity, '.bt', '.Rdata', sep=''))
+  # normalize weights to sum up to 1
+  weights <- x / sum(x) 
+  return(weights)
 }
 
-
-#*****************************************************************
-# Create Reports
-#****************************************************************** 
-for(name in names) {
-  load(file=paste(name, '.Rdata', sep=''))
-  
-  # create summary of inputs report
-  custom.input.report.helper(paste('report.', name, sep=''), data)
-  
-  # create summary of strategies report
-  load(file=paste(name, lookback.len, periodicity, '.bt', '.Rdata', sep=''))
-  custom.report.helper(paste('report.', name, lookback.len, periodicity, sep=''), 
-                       create.strategies(obj, data))   
+dates <- index(returns.sectors)
+results <- NULL
+for(i in dates) {
+  d <- as.Date(i)
+  returns <- returns.sectors[index(returns.sectors) >= d & index(returns.sectors) <= i +365]
+  row <- minimum.correlation.portfolio(returns)
+  xts_row <- xts(row, d)
+  results <- rbind(results, xts_row)                ## add results to row
 }
 
+rs <- xts(x=rowSums(results * returns.sectors), order.by = index(returns.sectors))
+r <- cumsum(rowSums(results * returns.sectors))
+xts_r <- xts(x = r, order.by = index(returns.sectors))
+charts.PerformanceSummary(rs)
 
-#*****************************************************************
-# Futures and Forex: rescale strategies to match Equal Weight strategy risk profile
-#****************************************************************** 
-names = spl('FuturesForex') 
-for(name in names) {
-  load(file=paste(name, '.Rdata', sep=''))
-  
-  # create summary of strategies report
-  load(file=paste(name, lookback.len, periodicity, '.bt', '.Rdata', sep=''))
-  leverage = c(5, 4, 15, 20, 3, 1)
-  custom.report.helper(paste('report.leverage.', name, lookback.len, periodicity, sep=''), 
-                       create.strategies(obj, data, leverage)) 
-}
+table.AnnualizedReturns(rs)
+maxDrawdown(rs)
+CalmarRatio(rs)
+
+
+getSymbols("SPY", from="1990-01-01")
+
+charts.PerformanceSummary(Return.calculate(Ad(SPY)))
