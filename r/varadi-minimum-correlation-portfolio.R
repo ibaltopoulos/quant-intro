@@ -64,11 +64,19 @@ r <- cumsum(rowSums(results * returns.sectors))
 xts_r <- xts(x = r, order.by = index(returns.sectors))
 charts.PerformanceSummary(rs)
 
-table.AnnualizedReturns(rs)
-maxDrawdown(rs)
-CalmarRatio(rs)
+cbind(
+  table.AnnualizedReturns(rs),
+  maxDrawdown(rs),
+  CalmarRatio(rs))
 
 
 getSymbols("SPY", from="1990-01-01")
+returns.spy <- Return.calculate(Ad(SPY))
+charts.PerformanceSummary(returns.spy)
 
-charts.PerformanceSummary(Return.calculate(Ad(SPY)))
+spy.rs <- returns.spy["2006-02-07::"]
+
+cbind(
+  table.AnnualizedReturns(spy.rs),
+  maxDrawdown(spy.rs),
+  CalmarRatio(spy.rs))
