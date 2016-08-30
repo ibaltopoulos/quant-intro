@@ -47,7 +47,7 @@ cbind(
 symbols.alt <- c("EDV", "SPY", "XIV", "GLD")
 getSymbols(symbols.alt, from="1990-01-01")
 portfolio.alt.returns <- getReturns(symbols = symbols.alt, frequency = "weekly")
-portfolio.alt.weights <- c(0.6, 0.25, 0.075, 0.075)
+portfolio.alt.weights <- c(0.35, 0.25, 0.2, 0.2)
 strategy.alt <-xts(x = rowSums(portfolio.alt.returns * portfolio.alt.weights), 
                order.by = index(portfolio.alt.returns)) 
 
