@@ -14,7 +14,8 @@ require(TTR)
 # The broadness of the universe makes it suitable for harvesting risk premia
 # during different economical regimes. 
 
-getReturns <- function(symbols, frequency) {
+
+getPrices <- function(symbols, frequency) {
   prices <- list()
   for(i in 1:length(symbols)) {
     adjustedPrices <- Ad(get(symbols[i], envir = globalenv()))
@@ -29,6 +30,12 @@ getReturns <- function(symbols, frequency) {
     colnames(prices[[i]]) <- symbols[i]
   }
   prices <- do.call(cbind, prices)
+  
+  return(prices)
+}
+
+getReturns <- function(symbols, frequency) {
+  prices <- getPrices(symbols, frequency)
   colnames(prices) <- gsub("\\.[A-z]*", "", colnames(prices))
   returns <- Return.calculate(prices)
   
@@ -59,6 +66,11 @@ etf_names <- c(
 
 
 getSymbols(symbols, from="1990-01-01")
+
+## Explore Mom(L)
+cbind(head(SMA(Ad(GLD), 10), 20), head(Ad(GLD), 20), head(100 * (Ad(GLD) / SMA(Ad(GLD), 10)) - 1, 20))
+
+
 
 
 frequency <- "weekly"
