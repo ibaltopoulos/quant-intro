@@ -70,6 +70,13 @@ getSymbols(symbols, from="1990-01-01")
 ## Explore Mom(L)
 cbind(head(SMA(Ad(GLD), 10), 20), head(Ad(GLD), 20), head(100 * (Ad(GLD) / SMA(Ad(GLD), 10)) - 1, 20))
 
+MOM <- function(ts, lookback) {
+  return ((ts / SMA(ts, lookback)) - 1)
+}
+chart.TimeSeries( MOM(Ad(GLD), 39) )
+
+
+
 
 
 
