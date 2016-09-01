@@ -95,21 +95,30 @@ risk_off <- c("SHY", # iShares 1-3 Year Treasury Bond
 
 symbols <- c(risk_on, risk_off)
 getSymbols(symbols, from="1990-01-01")
-strategy.returns <- PAA(risk_on, risk_off, frequency = "weekly", lookback = 39, protection = 2, top = 6)
+strategy.returns <- PAA(risk_on, risk_off, frequency = "weekly", lookback = 52, protection = 2, top = 4)
+printPerformance(strategy.returns)
 
-filename <- "paa.pdf"
-pdf(filename)
-sink(filename, append=TRUE, split=TRUE)
+#filename <- "paa.pdf"
+#pdf(filename)
+#sink(filename, append=TRUE, split=TRUE)
 
-charts.PerformanceSummary(strategy.returns)
-charts.RollingPerformance(strategy.returns, width = 52)
+printPerformance <- function(strategy.returns) {
+  layout(rbind(c(1,2),c(3,4)))
+  #charts.PerformanceSummary(strategy.returns)
+  chart.CumReturns(strategy.returns)
+  chart.Drawdown(strategy.returns)
+  chart.TimeSeries(strategy.returns)
+  chart.Histogram(strategy.returns, main = "Density", breaks=40, methods = c("add.density", "add.normal", "add.centered", "add.rug"))
+  #charts.RollingPerformance(strategy.returns, width = 52)
+  rbind(
+    table.Stats(strategy.returns),
+    table.AnnualizedReturns(strategy.returns),
+    table.Drawdowns(strategy.returns, top = 10),
+    table.DrawdownsRatio(strategy.returns)
+  )
+  #table.CalendarReturns(strategy.returns)
+}
 
-chart.Histogram(strategy.returns, main = "Density", breaks=40, methods = c("add.density", "add.normal"))
-chart.Histogram(strategy.returns, main = "Skew and Kurtosis", methods = c("add.centered", "add.rug"))
-table.Stats(strategy.returns)
-#table.CalendarReturns(strategy.returns)
-table.Drawdowns(strategy.returns, top = 10)
-table.DrawdownsRatio(strategy.returns)
 
-sink()
-dev.off()
+#sink()
+#dev.off()
