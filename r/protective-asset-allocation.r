@@ -74,64 +74,42 @@ PAA <- function(risk_on, risk_off, frequency, lookback, protection, top) {
   
   strategy <- lag(weights) * returns
   strategy.returns <- xts(rowSums(strategy), order.by = index(returns))
-  
+  return(strategy.returns)
 }
 
-risk_on <- c("SPY", "QQQ", "EFA", "EEM", "GLD", "GSG", "IYR", "UUP", "HYG", "LQD", "IWM")
-risk_off <- c("SHY", "IEF", "AGG", "TLT")
+risk_on <- c("SPY", # SPDR S&P 500 ETF Trust
+             "QQQ", # NASDAQ- 100 Index Tracking Stock
+             "EFA", # iShares MSCI EAFE Index Fund (ETF)
+             "EEM", # iShares MSCI Emerging Markets Indx (ETF)
+             "GLD", # SPDR Gold Trust (ETF)
+             "GSG", # iShares S&P GSCI Commodity-Indexed Trust
+             "IYR", # iShares Dow Jones US Real Estate (ETF)
+             "UUP", # PowerShares DB US Dollar Bullish ETF
+             "HYG", # iShares iBoxx $ High Yid Corp Bond (ETF)
+             "LQD", # iShares IBoxx $ Invest Grade Corp Bd Fd
+             "IWM") # iShares Russell 2000 Index (ETF)
+risk_off <- c("SHY", # iShares 1-3 Year Treasury Bond
+              "IEF", # iShares Barclays 7-10 Year Trasry Bnd Fd
+              "AGG", # iShares Barclays Aggregate Bond Fund
+              "TLT") # iShares Barclays 20+ Yr Treas.Bond (ETF)
 
 symbols <- c(risk_on, risk_off)
-
-etf_names <- c(
-  "SPDR S&P 500 ETF Trust",
-  "NASDAQ- 100 Index Tracking Stock",
-  "iShares MSCI EAFE Index Fund (ETF)",
-  "iShares MSCI Emerging Markets Indx (ETF)",
-  "SPDR Gold Trust (ETF)",
-  "iShares S&P GSCI Commodity-Indexed Trust",
-  "iShares Dow Jones US Real Estate (ETF)",
-  "PowerShares DB US Dollar Bullish ETF",
-  "iShares iBoxx $ High Yid Corp Bond (ETF)",
-  "iShares IBoxx $ Invest Grade Corp Bd Fd",
-  "iShares Russell 2000 Index (ETF)",
-  "iShares 1-3 Year Treasury Bond",
-  "iShares Barclays 7-10 Year Trasry Bnd Fd",
-  "iShares Barclays Aggregate Bond Fund",
-  "iShares Barclays 20+ Yr Treas.Bond (ETF)")
-
-
 getSymbols(symbols, from="1990-01-01")
+strategy.returns <- PAA(risk_on, risk_off, frequency = "weekly", lookback = 39, protection = 2, top = 6)
 
+filename <- "paa.pdf"
+pdf(filename)
+sink(filename, append=TRUE, split=TRUE)
 
+charts.PerformanceSummary(strategy.returns)
+charts.RollingPerformance(strategy.returns, width = 52)
 
+chart.Histogram(strategy.returns, main = "Density", breaks=40, methods = c("add.density", "add.normal"))
+chart.Histogram(strategy.returns, main = "Skew and Kurtosis", methods = c("add.centered", "add.rug"))
+table.Stats(strategy.returns)
+#table.CalendarReturns(strategy.returns)
+table.Drawdowns(strategy.returns, top = 10)
+table.DrawdownsRatio(strategy.returns)
 
-
-frequency <- "weekly"
-lookback <- 39
-prices <- getPrices(symbols, "weekly")
-returns <- getReturns(symbols, "weekly")
-mom <- apply(prices, 2, FUN = function(c) MOM(c, 39))
-protection <- 2
-bf <- BF(mom, risk_on, protection)
-mom.rank <- t(apply(mom[, risk_on], 1, rank, ties.method="min"))
-top <- 6
-mom.rank[mom.rank > top] <- 0
-
-weights.risk_on <- mom.rank
-weights.risk_on[weights.risk_on > 0] <- 1
-weights.risk_on <- weights.risk_on * (1 - bf) / top
-
-risk_off.count <- length(risk_off)
-weights.risk_off <-  matrix(rep(bf / risk_off.count, risk_off.count), ncol = risk_off.count)
-colnames(weights.risk_off) <- risk_off
-
-weights <- cbind(weights.risk_on, weights.risk_off)
-
-strategy <- lag(weights) * returns
-strategy.returns <- xts(rowSums(strategy), order.by = index(returns))
-
-
-cbind(
-  table.AnnualizedReturns(strategy.returns),
-  maxDrawdown(strategy.returns),
-  CalmarRatio(strategy.returns))
+sink()
+dev.off()
