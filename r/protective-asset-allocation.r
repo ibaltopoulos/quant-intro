@@ -42,6 +42,41 @@ getReturns <- function(symbols, frequency) {
   return(returns)
 }
 
+MOM <- function(ts, lookback) {
+  return ((ts / SMA(ts, lookback)) - 1)
+}
+
+BF <- function(mom, risky.symbols, protection) {
+  N <- length(risky.symbols)
+  good.assets <- rowSums(mom[, risky.symbols] > 0, na.rm=TRUE)
+  
+  BF <- pmin((N - good.assets) / (N - (protection * N/4)), 1)
+  return(BF)
+}
+
+PAA <- function(risk_on, risk_off, frequency, lookback, protection, top) {
+  prices <- getPrices(symbols, frequency)
+  returns <- getReturns(symbols, frequency)
+  mom <- apply(prices, 2, FUN = function(c) MOM(c, lookback))
+  bf <- BF(mom, risk_on, protection)
+  mom.rank <- t(apply(mom[, risk_on], 1, rank, ties.method="min"))
+  mom.rank[mom.rank > top] <- 0
+  
+  weights.risk_on <- mom.rank
+  weights.risk_on[weights.risk_on > 0] <- 1
+  weights.risk_on <- weights.risk_on * (1 - bf) / top
+  
+  risk_off.count <- length(risk_off)
+  weights.risk_off <-  matrix(rep(bf / risk_off.count, risk_off.count), ncol = risk_off.count)
+  colnames(weights.risk_off) <- risk_off
+  
+  weights <- cbind(weights.risk_on, weights.risk_off)
+  
+  strategy <- lag(weights) * returns
+  strategy.returns <- xts(rowSums(strategy), order.by = index(returns))
+  
+}
+
 risk_on <- c("SPY", "QQQ", "EFA", "EEM", "GLD", "GSG", "IYR", "UUP", "HYG", "LQD", "IWM")
 risk_off <- c("SHY", "IEF", "AGG", "TLT")
 
@@ -67,51 +102,36 @@ etf_names <- c(
 
 getSymbols(symbols, from="1990-01-01")
 
-## Explore Mom(L)
-cbind(head(SMA(Ad(GLD), 10), 20), head(Ad(GLD), 20), head(100 * (Ad(GLD) / SMA(Ad(GLD), 10)) - 1, 20))
-
-MOM <- function(ts, lookback) {
-  return ((ts / SMA(ts, lookback)) - 1)
-}
-chart.TimeSeries( MOM(Ad(GLD), 39) )
-
-
 
 
 
 
 frequency <- "weekly"
-prices <- list()
-for(i in 1:length(symbols)) {
-  adjustedPrices <- Ad(get(symbols[i], envir = globalenv()))
-  colnames(adjustedPrices) <- gsub("\\.[A-z]*", "", colnames(adjustedPrices))
-  prices[[i]] <-
-    Cl(switch(frequency,
-              weekly = to.weekly(adjustedPrices),
-              monthly = to.monthly(adjustedPrices),
-              quarterly = to.quarterly(adjustedPrices),
-              yearly = to.yearly(adjustedPrices)))
-  
-  colnames(prices[[i]]) <- symbols[i]
-}
+lookback <- 39
+prices <- getPrices(symbols, "weekly")
+returns <- getReturns(symbols, "weekly")
+mom <- apply(prices, 2, FUN = function(c) MOM(c, 39))
+protection <- 2
+bf <- BF(mom, risk_on, protection)
+mom.rank <- t(apply(mom[, risk_on], 1, rank, ties.method="min"))
+top <- 6
+mom.rank[mom.rank > top] <- 0
 
-prices <- do.call(cbind, prices)
+weights.risk_on <- mom.rank
+weights.risk_on[weights.risk_on > 0] <- 1
+weights.risk_on <- weights.risk_on * (1 - bf) / top
 
+risk_off.count <- length(risk_off)
+weights.risk_off <-  matrix(rep(bf / risk_off.count, risk_off.count), ncol = risk_off.count)
+colnames(weights.risk_off) <- risk_off
 
-portfolio.returns <- getReturns(symbols = symbols, frequency = "monthly")
-portfolio.weights <- c(0.075, 0.075, 0.15, 0.30, 0.40)
-strategy <-xts(x = rowSums(portfolio.returns * portfolio.weights), 
-               order.by = index(portfolio.returns)) 
+weights <- cbind(weights.risk_on, weights.risk_off)
 
-
-
+strategy <- lag(weights) * returns
+strategy.returns <- xts(rowSums(strategy), order.by = index(returns))
 
 
-getSymbols(symbols, from = "1990-01-01")
-prices.daily <- list()
-for(i in 1:length(symbols)) {
-  prices.daily[[i]] <- Ad(get(symbols[i]))  
-}
-prices.daily <- do.call(cbind, prices.daily)
-prices.daily <- na.omit(prices.daily)
-colnames(prices.daily) <- gsub("\\.[A-z]*", "", colnames(prices.daily))
+cbind(
+  table.AnnualizedReturns(strategy.returns),
+  maxDrawdown(strategy.returns),
+  CalmarRatio(strategy.returns))
