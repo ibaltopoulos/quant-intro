@@ -113,8 +113,8 @@ risk_on <- c("SPY", # SPDR S&P 500 ETF Trust
 # risk_on <- c("XBI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
 symbols.country <- c(
   "UBR", # ProShares Ultra MSCI Brazil	
-  "BRF", # Market Vectors Brazil Small-Cap ETF	
-  "EPU", # iShares MSCI All Peru Capped Idx		
+#  "BRF", # Market Vectors Brazil Small-Cap ETF	
+#  "EPU", # iShares MSCI All Peru Capped Idx		
   "EWZ", # iShares MSCI Brazil Index Fund		
   "IDX", # Market Vectors Indonesia ETF		
   "EIDO", # iShares MSCI Indonesia Investable Market		
@@ -127,7 +127,7 @@ symbols.country <- c(
   "EWT", # iShares MSCI Taiwan Index Fund		
   "EWH", # iShares MSCI Hong Kong Index Fund		
   "EWA", # iShares MSCI Australia Index Fund	
-  "XPP", # ProShares Ultra FTSE/Xinhua China 25		
+#  "XPP", # ProShares Ultra FTSE/Xinhua China 25		
   "EPI", # WisdomTree India Earnings		
   "GXG", # Global X/InterBolsa FTSE Colombia 20 ETF		
   "SPY", # SPDR S&P 500		
@@ -138,36 +138,36 @@ symbols.country <- c(
   "EWK", # iShares MSCI Belgium Index Fund		
   "IWM", # iShares Russell 2000 Index Fund		
   "INP", # iPath MSCI India ETN		
-  "INDL", # Direxion Daily India Bull 2x Shares	
+#  "INDL", # Direxion Daily India Bull 2x Shares	
   "PIN", # PowerShares India		
-  "ECH", # iShares MSCI Chile Index Fund		
-  "EZJ", # ProShares Ultra MSCI Japan		
+#  "ECH", # iShares MSCI Chile Index Fund		
+#  "EZJ", # ProShares Ultra MSCI Japan		
   "EWJ", # iShares MSCI Japan Index Fund		
-  "EDEN", # iShares MSCI Denmark Cppd Investable Mkt	
+#  "EDEN", # iShares MSCI Denmark Cppd Investable Mkt	
   "EWO"	, # iShares MSCI Austria Index Fund	
   "EWN", # iShares MSCI Netherlands Index Fund		
   "EWS", # iShares MSCI Singapore Index Fund		
   "TUR", # iShares MSCI Turkey Invest Mkt Index		
   "EWG", # iShares MSCI Germany Index Fund		
-  "DAX", # Recon Capital DAX Germany ETF		
-  "EGPT", # Market Vectors Egypt Index ETF	
+#  "DAX", # Recon Capital DAX Germany ETF		
+#  "EGPT", # Market Vectors Egypt Index ETF	
   "EWW", # iShares MSCI Mexico Index Fund	
   "EWQ", # iShares MSCI France Index Fund	
-  "EIRL", # iShares MSCI Ireland Capped Investable Market	
+#  "EIRL", # iShares MSCI Ireland Capped Investable Market	
   "EWD", # iShares MSCI Sweden Index Fund	
   "EZA", # iShares MSCI South Africa Index Fund	
   "EWL"	, # iShares MSCI Switzerland Index Fund	
   "EWU", # iShares MSCI United Kingdom Index Fund	
   "EIS", # iShares MSCI Israel Cap Invest Mkt Index	
-  "UMX", # ProShares Ultra MSCI Mexico Investable Market	
+#  "UMX", # ProShares Ultra MSCI Mexico Investable Market	
   "EWP", # iShares MSCI Spain Index Fund	
-  "EPOL", # iShares MSCI Poland Investable Market Index Fund	
-  "YXI", # ProShares Short FTSE/Xinhua China 25	
-  "EWI", # iShares MSCI Italy Index Fund	
-  "EWV", # ProShares UltraShort MSCI Japan		
-  "SMK", # ProShares UltraShort MSCI Mexico		
-  "FXP", # ProShares UltraShort FTSE/Zinhua China 25	
-  "BZQ" # ProShares UltraShort MSCI Brazil		
+#  "EPOL", # iShares MSCI Poland Investable Market Index Fund	
+#  "YXI", # ProShares Short FTSE/Xinhua China 25	
+  "EWI" # iShares MSCI Italy Index Fund	
+#  "EWV", # ProShares UltraShort MSCI Japan		
+#  "SMK", # ProShares UltraShort MSCI Mexico		
+#  "FXP", # ProShares UltraShort FTSE/Zinhua China 25	
+#  "BZQ" # ProShares UltraShort MSCI Brazil		
 )
 
 risk_off <- c("SHY", # iShares 1-3 Year Treasury Bond
@@ -177,7 +177,7 @@ risk_off <- c("SHY", # iShares 1-3 Year Treasury Bond
 
 symbols <- c(symbols.country, risk_off)
 getSymbols(symbols, from="1990-01-01")
-strategy.returns <- PAA(symbols.country, risk_off, frequency = "weekly", lookback = 13, protection = 2, top = 9)
+strategy.returns <- PAA(symbols.country, risk_off, frequency = "weekly", lookback = 52, protection = 2, top = 20)
 printPerformance(strategy.returns)
 
 #filename <- "paa.pdf"
