@@ -98,19 +98,19 @@ printPerformance <- function(strategy.returns) {
 
 
 risk_on <- c("SPY", # SPDR S&P 500 ETF Trust
-             # "QQQ", # NASDAQ- 100 Index Tracking Stock
-              "EFA")#, # iShares MSCI EAFE Index Fund (ETF)
-             # "EEM", # iShares MSCI Emerging Markets Indx (ETF)
-             # "GLD", # SPDR Gold Trust (ETF)
-             # "GSG", # iShares S&P GSCI Commodity-Indexed Trust
-             # "IYR", # iShares Dow Jones US Real Estate (ETF)
-             # "UUP", # PowerShares DB US Dollar Bullish ETF
-             # "HYG", # iShares iBoxx $ High Yid Corp Bond (ETF)
-             # "LQD", # iShares IBoxx $ Invest Grade Corp Bd Fd
-             # "IWM") # iShares Russell 2000 Index (ETF)
+             "QQQ", # NASDAQ- 100 Index Tracking Stock
+             "EFA", #, # iShares MSCI EAFE Index Fund (ETF)
+             "EEM", # iShares MSCI Emerging Markets Indx (ETF)
+             "GLD", # SPDR Gold Trust (ETF)
+             "GSG", # iShares S&P GSCI Commodity-Indexed Trust
+             "IYR", # iShares Dow Jones US Real Estate (ETF)
+             "UUP", # PowerShares DB US Dollar Bullish ETF
+             "HYG", # iShares iBoxx $ High Yid Corp Bond (ETF)
+             "LQD", # iShares IBoxx $ Invest Grade Corp Bd Fd
+             "IWM") # iShares Russell 2000 Index (ETF)
 
 
-# risk_on <- c("XBI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
+symbols.sectors <- c("XBI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
 symbols.country <- c(
   "UBR", # ProShares Ultra MSCI Brazil	
 #  "BRF", # Market Vectors Brazil Small-Cap ETF	
@@ -175,7 +175,9 @@ risk_off <- c("SHY", # iShares 1-3 Year Treasury Bond
               "AGG", # iShares Barclays Aggregate Bond Fund
               "TLT") # iShares Barclays 20+ Yr Treas.Bond (ETF)
 
-symbols <- c(symbols.country, risk_off)
+
+
+symbols <- c(risk_on, symbols.sectors, symbols.country, risk_off)
 getSymbols(symbols, from="1990-01-01")
 strategy.returns <- PAA(symbols.country, risk_off, frequency = "weekly", lookback = 52, protection = 2, top = 20)
 printPerformance(strategy.returns)
