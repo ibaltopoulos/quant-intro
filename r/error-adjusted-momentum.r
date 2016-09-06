@@ -1,11 +1,10 @@
 # from http://www.capitalspectator.com/a-momentum-based-trading-signal-with-strategic-value/
-
 library(TTR)
 library(zoo)
 library(quantmod)
 
 # download daily S&P 500 prices from Dec 31, 1990 forward
-gspc <-getSymbols('^gspc',from='1990-12-31',auto.assign=FALSE)
+gspc <-getSymbols('^gspc', from='1990-12-31', auto.assign=FALSE)
 
 # error adjusted momentum function
 eam <-function(symbol, lookback, sma) { # x=ticker, y=lookback period for forecast z=SMA period
@@ -17,7 +16,7 @@ eam <-function(symbol, lookback, sma) { # x=ticker, y=lookback period for foreca
   f <- to.daily(na.omit(rollapplyr(e, lookback, function(x) mean(abs(x)))),drop.time=TRUE,OHLC=FALSE) # mean absolute error
   g <- cbind(return,f) # combine actual return with MAE into one file
   h <- na.omit(return[,1]/g[,2]) # divide actual return by MAE
-  i <- na.omit(SMA(h,z)) # generate 200-day moving average of adjusted return
+  i <- na.omit(SMA(h,sma)) # generate 200-day moving average of adjusted return
   j <- na.omit(Lag(ifelse(i >0,1,0))) # lag adjusted return signal by one day for trading analysis
 }
 
