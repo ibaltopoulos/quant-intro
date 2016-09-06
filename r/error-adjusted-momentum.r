@@ -46,7 +46,7 @@ eam.ret <-function(x,y,z) { # x=ticker, y=lookback period for vol forecast, z=SM
 
 
 
-eam.model <-eam.ret(gspc,10,200)
+eam.model <-eam.ret(gspc, 10, 200)
 
 eam.data <-function(x,y,z) { # x=ticker, y=lookback period for forecast z=SMA period
   a <-na.omit(ROC(Ad(x),1,"discrete"))
@@ -64,3 +64,12 @@ eam.data <-function(x,y,z) { # x=ticker, y=lookback period for forecast z=SMA pe
 
 eam.data.history <-eam.data(gspc,10,200)
 
+
+r <- sapply(10:365, FUN = function(x) { 
+  strategy <- Return.calculate(eam.ret(gspc, 10, x))
+  t <- table.AnnualizedReturns(strategy)
+  result <- t[,1]
+  #colnames(result) <- x
+  #rownames(result) <- c("Annualized Return", "Annualized Std Dev", "Annualized Sharpe (Rf=0%)")
+  return(result)
+})
