@@ -5,7 +5,7 @@ library(quantmod)
 library(PerformanceAnalytics)
 
 # download daily S&P 500 prices from Dec 31, 1990 forward
-gspc <-getSymbols('^gspc', from='1990-12-31', auto.assign=FALSE)
+gspc <-getSymbols('^gspc', from='1900-12-31', auto.assign=FALSE)
 
 # error adjusted momentum function
 eam <-function(symbol, lookback, sma) { # x=ticker, y=lookback period for forecast z=SMA period

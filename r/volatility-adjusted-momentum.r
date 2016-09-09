@@ -37,11 +37,11 @@ colnames(gspc.returns) <- "gspc.returns"
 getStrategies <- function(date) {
   return(cbind(strategy.volyz[date], 
                strategy.volsd[date], 
-#               gspc.returns[date], 
+               gspc.returns[date], 
                strategy.pricesma[date]))
 }
 
-strategies <- getStrategies("1955::")
+strategies <- getStrategies("1959-05-15::")
   cbind(strategy.volyz, strategy.volsd, gspc.returns, strategy.pricesma)
 
 rbind(
@@ -49,4 +49,22 @@ rbind(
   maxDrawdown(strategies),
   CalmarRatio(strategies))
 
+setwd("D:/Github/quant-intro/r")
+ogef <- read.csv("prices.csv")
+ogef.xts <- xts(ogef$Price, order.by = as.Date(ogef$ï..Date))
 
+ogef.returns <- Return.calculate(ogef.xts)
+ogef.volatility <- volatility(ogef.xts, calc = "close", n = 10)
+ogef.voladj <- ogef.returns / ogef.volatility
+
+ogef.roc <- ROC(ogef.xts, 200) - ROC(ogef.xts, 7)
+ogef.signal <- na.omit(Lag(ifelse(ogef.roc >0,1,0)))
+
+ogef.sma <- SMA(ogef.voladj, 200)
+ogef.signal <- na.omit(Lag(ifelse(ogef.sma >0,1,0)))
+
+ogef.strategy <- ogef.signal * ogef.returns
+colnames(ogef.strategy) <- "ogef timing"
+colnames(ogef.returns) <- "ogef"
+
+comparison <- cbind(ogef.returns, ogef.strategy)
