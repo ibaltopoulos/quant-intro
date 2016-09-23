@@ -55,24 +55,64 @@ BF <- function(mom, risky.symbols, protection) {
   return(BF)
 }
 
-PAA <- function(risk_on, risk_off, frequency, lookback, protection, top) {
-  prices <- getPrices(symbols, frequency)
-  returns <- getReturns(symbols, frequency)
+minimum.correlation.portfolio <- function(returns) {
+  s0 <- apply(data.frame(returns), 2, sd)
+  correlation <- cor(returns, use='complete.obs', method='pearson') 
+  covariance <- correlation * (s0 %*% t(s0))
+  upper.index <- upper.tri(correlation)
+  cor.m <- correlation[upper.index]
+  cor.mu <- mean(cor.m)
+  cor.sd <- sd(cor.m)
+  
+  norm.dist.m <- 0 * correlation
+  diag(norm.dist.m) <- NA
+  norm.dist.m[upper.index] <- 1-pnorm(cor.m, cor.mu, cor.sd)
+  norm.dist.m <- (norm.dist.m + t(norm.dist.m))
+  norm.dist.avg <- rowMeans(norm.dist.m, na.rm=T)
+  norm.dist.rank <- rank(-norm.dist.avg)
+  norm.dist.weight <- norm.dist.rank / sum(norm.dist.rank)
+  diag(norm.dist.m) <- 0
+  weighted.norm.dist.average <- norm.dist.weight %*% norm.dist.m
+  final.weight <- weighted.norm.dist.average / sum(weighted.norm.dist.average)
+  
+  # re-scale weights to penalize for risk
+  x <- final.weight
+  x <- x / sqrt( diag(covariance) )
+  
+  # normalize weights to sum up to 1
+  weights <- x / sum(x) 
+  return(weights)
+}
+
+PAAWeights <- function(risky.symbols, nonrisky.symbols, frequency, lookback, protection, top) {
+  syms <- c(risky.symbols, nonrisky.symbols)
+  prices <- getPrices(syms, frequency)
+  returns <- getReturns(syms, frequency)
+  
   mom <- apply(prices, 2, FUN = function(c) MOM(c, lookback))
-  bf <- BF(mom, risk_on, protection)
-  mom.rank <- t(apply(mom[, risk_on], 1, rank, ties.method="min"))
+  bf <- BF(mom, risky.symbols, protection)
+  mom.rank <- t(apply(mom[, risky.symbols], 1, rank, ties.method="min"))
   mom.rank[mom.rank > top] <- 0
   
   weights.risk_on <- mom.rank
   weights.risk_on[weights.risk_on > 0] <- 1
-  weights.risk_on <- weights.risk_on * (1 - bf) / top
+  weights.risk_on <- weights.risk_on * (1 - bf) / min(top, length(risky.symbols))
   
-  risk_off.count <- length(risk_off)
+  ### Add minimum correlatoin weight algorithm here.
+  weights.risk_on <- weights.risk_on * (1 - bf) / min(top, length(risky.symbols))
+  
+  risk_off.count <- length(nonrisky.symbols)
   weights.risk_off <-  matrix(rep(bf / risk_off.count, risk_off.count), ncol = risk_off.count)
-  colnames(weights.risk_off) <- risk_off
+  colnames(weights.risk_off) <- nonrisky.symbols
   
   weights <- cbind(weights.risk_on, weights.risk_off)
-  
+  return(weights)
+}
+
+PAA <- function(risky.symbols, nonrisky.symbols, frequency, lookback, protection, top) {
+  syms <- c(risky.symbols, nonrisky.symbols)
+  weights <- PAAWeights(risky.symbols, nonrisky.symbols, frequency, lookback, protection, top)
+  returns <- getReturns(syms, frequency)
   strategy <- lag(weights) * returns
   strategy.returns <- xts(rowSums(strategy), order.by = index(returns))
   colnames(strategy.returns) <- paste0(frequency, ".returns")
@@ -81,6 +121,7 @@ PAA <- function(risk_on, risk_off, frequency, lookback, protection, top) {
 
 
 printPerformance <- function(strategy.returns) {
+  dev.new()
   layout(rbind(c(1,2),c(3,4)))
   #charts.PerformanceSummary(strategy.returns)
   chart.CumReturns(strategy.returns)
@@ -170,17 +211,53 @@ symbols.country <- c(
 #  "BZQ" # ProShares UltraShort MSCI Brazil		
 )
 
-risk_off <- c("SHY", # iShares 1-3 Year Treasury Bond
+risk_off <- c(
+              #"SHY", # iShares 1-3 Year Treasury Bond
               "IEF", # iShares Barclays 7-10 Year Trasry Bnd Fd
-              "AGG", # iShares Barclays Aggregate Bond Fund
+              #"AGG", # iShares Barclays Aggregate Bond Fund
               "TLT") # iShares Barclays 20+ Yr Treas.Bond (ETF)
 
 
 
 symbols <- c(risk_on, symbols.sectors, symbols.country, risk_off)
 getSymbols(symbols, from="1990-01-01")
-strategy.returns <- PAA(symbols.country, risk_off, frequency = "weekly", lookback = 52, protection = 2, top = 20)
+
+
+sharpe <- matrix(ncol = 11, nrow = 26)
+rtn <- matrix(ncol = 11, nrow = 26)
+
+for(topi in 1:11) {
+  for(looki in 1:26) {
+    rets <- PAA(risk_on, risk_off, frequency = "weekly", lookback = 26 + looki, protection = 2, top = topi)
+    tb <- table.AnnualizedReturns(rets)
+    rtn[looki, topi] <- tb[1,1]
+    sharpe[looki, topi] <- tb[3,1]
+  }
+}
+
+strategy.returns <- PAA(risk_on, risk_off, frequency = "weekly", lookback = 26, protection = 2, top = 11)
+tb <- table.AnnualizedReturns(strategy.returns)
+
 printPerformance(strategy.returns)
+
+
+sec.sharpe <- matrix(ncol = 10, nrow = 26)
+sec.rtn <- matrix(ncol = 10, nrow = 26)
+
+for(topi in 1:10) {
+  for(looki in 1:26) {
+    rets <- PAA(symbols.sectors, risk_off, frequency = "weekly", lookback = looki, protection = 2, top = topi)
+    tb <- table.AnnualizedReturns(rets)
+    sec.rtn[looki, topi] <- tb[1,1]
+    sec.sharpe[looki, topi] <- tb[3,1]
+  }
+}
+
+sector.returns <- PAA(symbols.sectors, risk_off, frequency = "weekly", lookback = 30, protection = 2, top = 10)
+sector.weights <- PAAWeights(symbols.sectors, risk_off, frequency = "weekly", lookback = 30, protection = 2, top = 10)
+
+
+strategy.weights <- PAAWeights(risk_on, risk_off, frequency = "weekly", lookback = 26, protection = 2, top = 11)
 
 #filename <- "paa.pdf"
 #pdf(filename)
