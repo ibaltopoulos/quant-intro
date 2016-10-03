@@ -238,7 +238,11 @@ for(topi in 1:11) {
 strategy.returns <- PAA(risk_on, risk_off, frequency = "weekly", lookback = 26, protection = 2, top = 11)
 tb <- table.AnnualizedReturns(strategy.returns)
 
+strategy.returns <- PAA(risk_on, risk_off, frequency = "monthly", lookback = 6, protection = 2, top = 11)
+
 printPerformance(strategy.returns)
+
+
 
 
 sec.sharpe <- matrix(ncol = 10, nrow = 26)

@@ -4,6 +4,18 @@ require(PerformanceAnalytics)
 require(TTR)
 
 symbols.sectors <- c("XBI", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY")
+symbols.sectors <- c("SPY", # SPDR S&P 500 ETF Trust
+                     "QQQ", # NASDAQ- 100 Index Tracking Stock
+                     "EFA", #, # iShares MSCI EAFE Index Fund (ETF)
+                     "EEM", # iShares MSCI Emerging Markets Indx (ETF)
+                     "GLD", # SPDR Gold Trust (ETF)
+                     "GSG", # iShares S&P GSCI Commodity-Indexed Trust
+                     "IYR", # iShares Dow Jones US Real Estate (ETF)
+                     "UUP", # PowerShares DB US Dollar Bullish ETF
+                     "HYG", # iShares iBoxx $ High Yid Corp Bond (ETF)
+                     "LQD", # iShares IBoxx $ Invest Grade Corp Bd Fd
+                     "IWM") # iShares Russell 2000 Index (ETF)
+
 getSymbols(symbols.sectors, from="1990-01-01")
 prices.sectors <- list()
 for(i in 1:length(symbols.sectors)) {
@@ -18,7 +30,7 @@ returns.sectors <- Return.calculate(prices.sectors)
 returns.sectors <- na.omit(returns.sectors)
 
 
-returns.window <- returns.sectors["2006::2007"]
+#returns.window <- returns.sectors["2006::2007"]
 
 minimum.correlation.portfolio <- function(returns) {
   s0 <- apply(data.frame(returns), 2, sd)
@@ -60,23 +72,12 @@ for(i in dates) {
 }
 
 rs <- xts(x=rowSums(results * returns.sectors), order.by = index(returns.sectors))
-r <- cumsum(rowSums(results * returns.sectors))
-xts_r <- xts(x = r, order.by = index(returns.sectors))
-charts.PerformanceSummary(rs)
 
+
+charts.PerformanceSummary(rs)
 cbind(
   table.AnnualizedReturns(rs),
   maxDrawdown(rs),
   CalmarRatio(rs))
 
-
-getSymbols("SPY", from="1990-01-01")
-returns.spy <- Return.calculate(Ad(SPY))
-charts.PerformanceSummary(returns.spy)
-
-spy.rs <- returns.spy["2006-02-07::"]
-
-cbind(
-  table.AnnualizedReturns(spy.rs),
-  maxDrawdown(spy.rs),
-  CalmarRatio(spy.rs))
+table.Drawdowns(rs, top = 10)
