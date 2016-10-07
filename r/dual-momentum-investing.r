@@ -130,7 +130,10 @@ strategy <- lag(signal) * spy.returns["2003::"] + lag(1-signal) * shy.returns["2
 
 dev.new()
 charts.PerformanceSummary(strategy)
-table.AnnualizedReturns(strategy)
+t(table.AnnualizedReturns(strategy))
+table.DownsideRisk(strategy)
+table.DrawdownsRatio(strategy)
+
 
 dev.new()
 layout(rbind(c(1),c(2), c(3)))
