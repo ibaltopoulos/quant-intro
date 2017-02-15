@@ -13,7 +13,7 @@ To add bootstrap you need to include two files to the existing page:
     There is a website that offers free themes for bootstrap called
     [Bootswatch.com](http://bootswatch.com/) 
     
-2) The bootstrap Javascript file. This file goes at the bottom of the html page right before the clossing `body` tag.
+2) The bootstrap Javascript file. This file goes at the bottom of the html page right before the closing `body` tag.
       
     `<script src="js/bootstrap.min.js" />`
     
