@@ -84,6 +84,8 @@ minimum.correlation.portfolio <- function(returns) {
   return(weights)
 }
 
+PAAWeights(risk_on, risk_off, frequency = "weekly", lookback = 26, protection = 2, top = 11)
+
 PAAWeights <- function(risky.symbols, nonrisky.symbols, frequency, lookback, protection, top) {
   syms <- c(risky.symbols, nonrisky.symbols)
   prices <- getPrices(syms, frequency)
@@ -99,10 +101,12 @@ PAAWeights <- function(risky.symbols, nonrisky.symbols, frequency, lookback, pro
   weights.risk_on <- weights.risk_on * (1 - bf) / min(top, length(risky.symbols))
   
   ### Add minimum correlatoin weight algorithm here.
-  weights.risk_on <- weights.risk_on * (1 - bf) / min(top, length(risky.symbols))
+  #weights.risk_on <- weights.risk_on * (1 - bf) / min(top, length(risky.symbols))
   
   risk_off.count <- length(nonrisky.symbols)
+  
   weights.risk_off <-  matrix(rep(bf / risk_off.count, risk_off.count), ncol = risk_off.count)
+  
   colnames(weights.risk_off) <- nonrisky.symbols
   
   weights <- cbind(weights.risk_on, weights.risk_off)
@@ -113,7 +117,7 @@ PAA <- function(risky.symbols, nonrisky.symbols, frequency, lookback, protection
   syms <- c(risky.symbols, nonrisky.symbols)
   weights <- PAAWeights(risky.symbols, nonrisky.symbols, frequency, lookback, protection, top)
   returns <- getReturns(syms, frequency)
-  strategy <- lag(weights) * returns
+  strategy <- lag(weights, k = -1) * returns
   strategy.returns <- xts(rowSums(strategy), order.by = index(returns))
   colnames(strategy.returns) <- paste0(frequency, ".returns")
   return(strategy.returns)
@@ -235,7 +239,7 @@ for(topi in 1:11) {
   }
 }
 
-strategy.returns <- PAA(risk_on, risk_off, frequency = "weekly", lookback = 26, protection = 2, top = 11)
+
 tb <- table.AnnualizedReturns(strategy.returns)
 
 strategy.returns <- PAA(risk_on, risk_off, frequency = "monthly", lookback = 6, protection = 2, top = 11)
