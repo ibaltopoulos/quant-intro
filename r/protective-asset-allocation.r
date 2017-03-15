@@ -84,8 +84,6 @@ minimum.correlation.portfolio <- function(returns) {
   return(weights)
 }
 
-PAAWeights(risk_on, risk_off, frequency = "weekly", lookback = 26, protection = 2, top = 11)
-
 PAAWeights <- function(risky.symbols, nonrisky.symbols, frequency, lookback, protection, top) {
   syms <- c(risky.symbols, nonrisky.symbols)
   prices <- getPrices(syms, frequency)
@@ -117,7 +115,7 @@ PAA <- function(risky.symbols, nonrisky.symbols, frequency, lookback, protection
   syms <- c(risky.symbols, nonrisky.symbols)
   weights <- PAAWeights(risky.symbols, nonrisky.symbols, frequency, lookback, protection, top)
   returns <- getReturns(syms, frequency)
-  strategy <- lag(weights, k = -1) * returns
+  strategy <- lag(weights, k = 1) * returns
   strategy.returns <- xts(rowSums(strategy), order.by = index(returns))
   colnames(strategy.returns) <- paste0(frequency, ".returns")
   return(strategy.returns)
@@ -239,7 +237,8 @@ for(topi in 1:11) {
   }
 }
 
-
+strategy.returns <- PAA(risk_on, risk_off, frequency = "weekly", lookback = 26, protection = 2, top = 11)
+table.AnnualizedReturns(strategy.returns)
 tb <- table.AnnualizedReturns(strategy.returns)
 
 strategy.returns <- PAA(risk_on, risk_off, frequency = "monthly", lookback = 6, protection = 2, top = 11)
@@ -254,14 +253,14 @@ sec.rtn <- matrix(ncol = 10, nrow = 26)
 
 for(topi in 1:10) {
   for(looki in 1:26) {
-    rets <- PAA(symbols.sectors, risk_off, frequency = "weekly", lookback = looki, protection = 2, top = topi)
+    rets <- PAA(symbols.sectors, risk_off, frequency = "weekly", lookback = 26 + looki, protection = 2, top = topi)
     tb <- table.AnnualizedReturns(rets)
     sec.rtn[looki, topi] <- tb[1,1]
     sec.sharpe[looki, topi] <- tb[3,1]
   }
 }
 
-sector.returns <- PAA(symbols.sectors, risk_off, frequency = "weekly", lookback = 30, protection = 2, top = 10)
+sector.returns <- PAA(symbols.sectors, risk_off, frequency = "weekly", lookback = 28, protection = 2, top = 10)
 sector.weights <- PAAWeights(symbols.sectors, risk_off, frequency = "weekly", lookback = 30, protection = 2, top = 10)
 
 
