@@ -55,3 +55,22 @@ cbind(
   table.AnnualizedReturns(strategy.alt),
   maxDrawdown(strategy.alt),
   CalmarRatio(strategy.alt))
+
+printChart <- function(strategy.returns) {
+  dev.new()
+  layout(rbind(c(1,2),c(3,4)))
+  #charts.PerformanceSummary(strategy.returns)
+  chart.CumReturns(strategy.returns)
+  chart.Drawdown(strategy.returns)
+  chart.TimeSeries(strategy.returns)
+  chart.Histogram(strategy.returns, main = "Density", breaks=40, methods = c("add.density", "add.normal", "add.centered", "add.rug"))
+  #charts.RollingPerformance(strategy.returns, width = 52)
+
+  table.Stats(strategy.returns)
+  table.AnnualizedReturns(strategy.returns)
+  table.Drawdowns(strategy.returns, top = 10)
+  table.DrawdownsRatio(strategy.returns)
+  table.CalendarReturns(strategy.returns)
+}
+
+printChart(strategy.alt)
